@@ -299,27 +299,6 @@ macro_rules! def {
 // }
 //
 def!(
-    get_b key:Bin => Val {
-        get::<Val,_>(key)
-    }
-
-    get key:Bin => OptionString {
-        get::<OptionString,_>(key)
-    }
-
-    del key:Bin => u32 {
-        del::<u32,_>(key)
-    }
-
-    quit => () {
-        quit()
-    }
-
-    set key:Bin val:Bin => () {
-        // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
-        set::<(), _, _>(key,val,None,None,false)
-    }
-
 setex key:Bin val:Bin ex:i64 => () {
     set::<(),_,_>(key, val, Some(Expiration::EX(ex)), None, false)
 }
@@ -383,6 +362,27 @@ zincr zset:Bin key:Bin=> f64 {
 zscore zset:Bin key:Bin => Option<f64> {
     zscore::<Option<f64>,_,_>(zset, key)
 }
+get_b key:Bin => Val {
+    get::<Val,_>(key)
+}
+
+get key:Bin => OptionString {
+    get::<OptionString,_>(key)
+}
+
+del key:Bin => u32 {
+    del::<u32,_>(key)
+}
+
+quit => () {
+    quit()
+}
+
+set key:Bin val:Bin => () {
+    // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
+    set::<(), _, _>(key,val,None,None,false)
+}
+
 
 );
 
