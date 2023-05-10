@@ -71,7 +71,7 @@ impl Xedis {
     block: Option<u64>,
     noack: bool,
     key: Bin,
-  ) -> Result<Vec<(Val, Val)>> {
+  ) -> Result<Vec<Vec<(Val, Vec<(Val, Vec<Val>)>)>>> {
     let key = key.as_ref();
     let consumer = from_utf8(consumer.as_ref())?;
     let group = from_utf8(group.as_ref())?;
