@@ -404,8 +404,8 @@ macro_rules! zset_range {
   };
 }
 
-zset_range!(zrangebyscore_withscores (Val, f64) : zrangebyscore min max true);
+zset_range!(zrangebyscore_withscore (Val, f64) : zrangebyscore min max true);
 zset_range!(zrangebyscore Val : zrangebyscore  min max false);
 
-zset_range!(zrevrangebyscore_withscores (Val, f64) : zrevrangebyscore max min true);
+zset_range!(zrevrangebyscore_withscore (Val, f64) : zrevrangebyscore max min true);
 zset_range!(zrevrangebyscore Val : zrevrangebyscore  max min false);

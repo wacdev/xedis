@@ -42,9 +42,9 @@ export class Xedis {
   zaddXx(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
   zaddNx(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
-  zrangebyscoreWithscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
+  zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
-  zrevrangebyscoreWithscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
+  zrevrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrevrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
 }
 export class Server {
