@@ -22,7 +22,18 @@ export class Xedis {
   sadd(set: Bin, val: Bin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
   zscore(zset: Bin, key: Bin): Promise<number | null>
+  fcall(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
+  fcallR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
+  fbool(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
+  fboolR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
+  fbin(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<Val | null>
+  fbinR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<Val | null>
+  fnum(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<number | null>
+  fnumR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<number | null>
+  fstr(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
+  fstrR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
   setex(key: Bin, val: Bin, ex: number): Promise<void>
+  fnload(code: Bin): Promise<string>
   hincr(map: Bin, key: Bin): Promise<number>
   zincrby(zset: Bin, key: Bin, score: number): Promise<number>
   zincr(zset: Bin, key: Bin): Promise<number>

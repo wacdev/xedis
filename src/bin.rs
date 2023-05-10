@@ -1,4 +1,7 @@
-use fred::types::{RedisKey, RedisValue};
+use fred::{
+  bytes_utils::Str,
+  types::{RedisKey, RedisValue},
+};
 use napi::{
   bindgen_prelude::{Buffer, FromNapiValue, ToNapiValue, TypeName, ValidateNapiValue},
   sys::{napi_env, napi_value},
@@ -12,6 +15,14 @@ impl AsRef<[u8]> for Bin {
     self.0.as_ref()
   }
 }
+
+impl Into<Str> for Bin {
+  fn into(self) -> Str {
+    std::string::String::from_utf8_lossy(self.as_ref()).into()
+  }
+}
+
+// Into<StrInner<fred::bytes::Bytes>> impl StrInner<fred::bytes::Bytes> for Bin {}
 
 impl ToNapiValue for Bin {
   unsafe fn to_napi_value(env: napi_env, bin: Self) -> napi::Result<napi_value> {
