@@ -126,6 +126,8 @@ ava(
         ]
       ]
     )
+
+    t.is 2, await C.zrem(zset,[key,key2])
     await C.del zset
     t.is null, await C.zscore zset, key
     return

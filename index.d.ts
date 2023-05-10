@@ -5,6 +5,9 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
+  del(key: Array<Bin> | Bin): Promise<number>
+  exist(key: Array<Bin> | Bin): Promise<number>
+  zrem(key: Bin, key: Array<Bin> | Bin): Promise<number>
   expire(key: Bin, ex: number): Promise<boolean>
   get(key: Bin): Promise<OptionString>
   getB(key: Bin): Promise<Val>
@@ -24,8 +27,6 @@ export class Xedis {
   zincrby(zset: Bin, key: Bin, score: number): Promise<number>
   zincr(zset: Bin, key: Bin): Promise<number>
   set(key: Bin, val: Bin): Promise<void>
-  del(key: Array<Bin> | Bin): Promise<number>
-  exist(key: Array<Bin> | Bin): Promise<number>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>

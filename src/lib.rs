@@ -152,18 +152,18 @@ pub async fn conn(
 macro_rules! def_one_or_li {
     (
         $(
-            $name:ident : $func:ident
+            $name:ident $($arg:ident:$arg_ty:ty)* : $func:ident
         )*
     ) => {
         #[napi]
         impl Xedis {
             $(
                 #[napi]
-                pub async fn $name(&self, key: Either<Vec<Bin>,Bin>) -> Result<i64> {
+                pub async fn $name(&self, $($arg:$arg_ty,)* key: Either<Vec<Bin>,Bin>) -> Result<u32> {
                     Ok(
                         match key{
-                          Either::A(key)=>self.c.$func(key),
-                          Either::B(key)=>self.c.$func(key)
+                          Either::A(key)=>self.c.$func($($arg,)* key),
+                          Either::B(key)=>self.c.$func($($arg,)* key)
                         }.await?
                     )
                 }
@@ -172,49 +172,12 @@ macro_rules! def_one_or_li {
     };
 }
 
-macro_rules! def {
-    (
-        $(
-            $name:ident
-            $($arg:ident:$arg_ty:ty)*
-            =>
-            $rt:ty : $func:ident
-        )*
-    ) => {
-        #[napi]
-        impl Xedis {
-            $(
-                #[napi]
-                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
-                    Ok(self.c.$func($($arg),*).await?)
-                }
-            )*
-        }
-    };
-}
+def_one_or_li!(
+    del : del
+    exist : exists
+    zrem key:Bin: zrem
+);
 
-macro_rules! def_with_args {
-    (
-        $(
-            $name:ident
-            $($arg:ident:$arg_ty:ty)*
-            =>
-            $rt:ty {
-                $($more:tt)*
-            }
-        )*
-    ) => {
-        #[napi]
-        impl Xedis {
-            $(
-                #[napi]
-                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
-                    Ok(self.c.$($more)*.await?)
-                }
-            )*
-        }
-    };
-}
 // macro_rules! fcall_ro {
 //   ($cx:ident, $ty:ty)=>{{
 //     let name = to_str($cx, 1)?;
@@ -274,6 +237,27 @@ macro_rules! def_with_args {
 // }
 //
 
+macro_rules! def {
+    (
+        $(
+            $name:ident
+            $($arg:ident:$arg_ty:ty)*
+            =>
+            $rt:ty : $func:ident
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
+            $(
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
+                    Ok(self.c.$func($($arg),*).await?)
+                }
+            )*
+        }
+    };
+}
+
 def! {
 expire key:Bin ex:i64 => bool : expire
 get key:Bin => OptionString : get
@@ -289,6 +273,29 @@ quit => () : quit
 sadd set:Bin val:Bin => i64 : sadd
 smembers set:Bin => Vec<Val> : smembers
 zscore zset:Bin key:Bin => Option<f64> : zscore
+}
+
+macro_rules! def_with_args {
+    (
+        $(
+            $name:ident
+            $($arg:ident:$arg_ty:ty)*
+            =>
+            $rt:ty {
+                $($more:tt)*
+            }
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
+            $(
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
+                    Ok(self.c.$($more)*.await?)
+                }
+            )*
+        }
+    };
 }
 
 def_with_args!(
@@ -314,11 +321,6 @@ set key:Bin val:Bin => () {
 }
 
 
-);
-
-def_one_or_li!(
-    del : del
-    exist : exists
 );
 
 #[napi]
