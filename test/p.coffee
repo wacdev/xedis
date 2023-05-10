@@ -5,7 +5,7 @@
 
 stream = 'task'
 HOSTNAME = hostname()
-console.log await R.xadd(
+await R.xadd(
   stream
   [
     ['-',JSON.stringify(['good','yes'])]

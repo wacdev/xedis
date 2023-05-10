@@ -2,10 +2,11 @@
 
 > ./R
   os > hostname
+  @w5/utf8/utf8d
 
 stream = 'task'
 HOSTNAME = hostname()
-console.log await R.xnext(
+for [task,li] from await R.xnext(
   'R'
   HOSTNAME
   10 # limit
@@ -13,6 +14,11 @@ console.log await R.xnext(
   false # noack
   stream
 )
+  console.log utf8d task
+  for [id, msg] from li
+    console.log utf8d id
+    for [k,v] from msg
+      console.log utf8d(k),utf8d(v)
 
 # key = new Uint8Array [2]
 #
