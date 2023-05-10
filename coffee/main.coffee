@@ -114,7 +114,7 @@ ava(
     )
 
     t.deepEqual(
-      await C.zrangebyscoreWithscores(zset)
+      await C.zrangebyscoreWithscore(zset)
       [
         [
           key2e
