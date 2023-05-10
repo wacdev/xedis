@@ -2,6 +2,7 @@
 
 DIR=$(realpath $0) && DIR=${DIR%/*}
 cd $DIR
+source sh/pid.sh
 set -ex
 
 if [ ! -d "node_modules" ]; then
