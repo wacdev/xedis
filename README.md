@@ -2,7 +2,7 @@
 
 # @w5/xedis
 
-Node.js Warp for [fred.rs](https://github.com/aembke/fred.rs)
+Node.js Warp for [fred.rs](https://github.com/aembke/fred.rs/compare/main...wacfork:fred.rs:main)
 
 ## Install
 

@@ -2,7 +2,7 @@ use anyhow::Result;
 use fred::{
   interfaces::{ClientLike, HashesInterface, KeysInterface, SetsInterface, SortedSetsInterface},
   prelude::{Expiration, ReconnectPolicy, RedisClient, RedisConfig, ServerConfig},
-  types::{RedisMap, ZRange, ZRangeBound, ZRangeKind},
+  types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind},
 };
 use napi::bindgen_prelude::{Either, Either3};
 use paste::paste;
@@ -323,47 +323,61 @@ def_with_args!(
 
 );
 
+macro_rules! zadd {
+  ($($name:ident $set_opt:expr)*) => {
+    #[napi]
+    impl Xedis {
+      $(
+      #[napi]
+      pub async fn $name(
+        &self,
+        zset: Bin,
+        key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
+        score: Option<f64>,
+      ) -> Result<u32> {
+        Ok(
+          if let Some(score) = score {
+            // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+            match key {
+              Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
+              _ => unreachable!(),
+            }
+          } else {
+            match key {
+              Either3::A(key) => self.c.zadd(
+                zset,
+                $set_opt,
+                None,
+                false,
+                false,
+                key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+              ),
+              Either3::B(key) => self.c.zadd(
+                zset,
+                $set_opt,
+                None,
+                false,
+                false,
+                key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+              ),
+              Either3::C(key) => self.c.zrem(zset, key),
+            }
+          }
+          .await?,
+        )
+      }
+      )*
+    }
+  };
+}
+
+zadd!(
+zadd None
+zadd_xx Some(SetOptions::XX)
+);
+
 #[napi]
 impl Xedis {
-  #[napi]
-  pub async fn zadd(
-    &self,
-    zset: Bin,
-    key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
-    score: Option<f64>,
-  ) -> Result<u32> {
-    Ok(
-      if let Some(score) = score {
-        // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
-        match key {
-          Either3::C(key) => self.c.zadd(zset, None, None, false, false, (score, key)),
-          _ => unreachable!(),
-        }
-      } else {
-        match key {
-          Either3::A(key) => self.c.zadd(
-            zset,
-            None,
-            None,
-            false,
-            false,
-            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-          ),
-          Either3::B(key) => self.c.zadd(
-            zset,
-            None,
-            None,
-            false,
-            false,
-            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-          ),
-          Either3::C(key) => self.c.zrem(zset, key),
-        }
-      }
-      .await?,
-    )
-  }
-
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
     let map = map.as_ref();
@@ -413,42 +427,12 @@ zset_range!(zrangebyscore Val : zrangebyscore  min max false);
 zset_range!(zrevrangebyscore_withscores (Val, f64) : zrevrangebyscore max min true);
 zset_range!(zrevrangebyscore Val : zrevrangebyscore  max min false);
 
-//   redis_zadd |cx| {
-//     let a1 = to_bin(cx, 1)?;
-//     let a2 = to_bin(cx, 2)?;
-//     let a3 = as_f64(cx, 3)?;
-//     this!(cx this {
-//       this.zadd::<f64,_,_>(
-//         a1,
-//         None,
-//         None,
-//         false,
-//         false,
-//         (
-//           a3,
-//           a2,
-//         )
-//       )
-//     })
-//   }
-//
 //   redis_zadd_xx |cx| {
 //     let a1 = to_bin(cx, 1)?;
 //     let a2 = to_bin(cx, 2)?;
 //     let a3 = as_f64(cx, 3)?;
 //
 //     this!(cx this {
-//       this.zadd::<f64,_,_>(
-//         a1,
-//         Some(SetOptions::XX),
-//         None,
-//         false,
-//         false,
-//         (
-//           a3,
-//           a2,
-//         )
-//       )
 //     })
 //   }
 //

@@ -28,6 +28,7 @@ export class Xedis {
   zincr(zset: Bin, key: Bin): Promise<number>
   set(key: Bin, val: Bin): Promise<void>
   zadd(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
+  zaddXx(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
