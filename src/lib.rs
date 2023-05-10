@@ -5,6 +5,7 @@ use fred::{
   types::{RedisMap, ZRange, ZRangeBound, ZRangeKind},
 };
 use napi::Either;
+use paste::paste;
 pub type OptionString = Option<String>;
 use std::collections::HashMap;
 
@@ -230,79 +231,76 @@ macro_rules! def {
 //
 def!(
 setex key:Bin val:Bin ex:i64 => () {
-    set::<(),_,_>(key, val, Some(Expiration::EX(ex)), None, false)
+    set(key, val, Some(Expiration::EX(ex)), None, false)
 }
 
 expire key:Bin ex:i64 => bool {
-    expire::<bool,_>(key, ex)
-}
-
-exist key:Bin => i64 {
-    exists::<i64,_>(key)
-}
-
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> {
-    hmget::<Vec<OptionString>,_,_>(map,li)
-}
-
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> {
-    hmget::<Vec<Val>,_,_>(map,li)
-}
-
-hget map:Bin key:Bin => OptionString {
-    hget::<OptionString,_,_>(map,key)
-}
-
-hget_b map:Bin key:Bin => Val {
-    hget::<Val,_,_>(map,key)
-}
-
-hdel map:Bin key:Bin => u32 {
-    hdel::<u32,_,_>(map,key)
-}
-
-hincr map:Bin key:Bin => i64 {
-    hincrby::<i64,_,_>(map, key, 1)
-}
-
-hincrby map:Bin key:Bin val:i64 => i64 {
-    hincrby::<i64,_,_>(map, key, val)
+    expire(key, ex)
 }
 
 hexist map:Bin key:Bin => bool {
-    hexists::<bool,_,_>(map,key)
+    hexists(map,key)
 }
 
+hmget map:Bin li:Vec<Bin> => Vec<OptionString> {
+    hmget(map,li)
+}
+
+hmget_b map:Bin li:Vec<Bin> => Vec<Val> {
+    hmget(map,li)
+}
+
+hget map:Bin key:Bin => OptionString {
+    hget(map,key)
+}
+
+hget_b map:Bin key:Bin => Val {
+    hget(map,key)
+}
+
+hdel map:Bin key:Bin => u32 {
+    hdel(map,key)
+}
+
+hincr map:Bin key:Bin => i64 {
+    hincrby(map, key, 1)
+}
+
+hincrby map:Bin key:Bin val:i64 => i64 {
+    hincrby(map, key, val)
+}
+
+
 sadd set:Bin val:Bin => i64 {
-    sadd::<i64,_,_>(set,val)
+    sadd(set,val)
 }
 
 smembers set:Bin => Vec<Val> {
-    smembers::<Vec<Val>,_>(set)
+    smembers(set)
 }
 
 zincrby zset:Bin key:Bin score: f64 => f64 {
-    zincrby::<f64,_,_>(zset,score,key)
+    zincrby(zset,score,key)
 }
 
 zincr zset:Bin key:Bin=> f64 {
-    zincrby::<f64,_,_>(zset,1.0,key)
+    zincrby(zset,1.0,key)
 }
 
 zscore zset:Bin key:Bin => Option<f64> {
-    zscore::<Option<f64>,_,_>(zset, key)
+    zscore(zset, key)
 }
 
 get_b key:Bin => Val {
-    get::<Val,_>(key)
+    get(key)
 }
 
 get key:Bin => OptionString {
-    get::<OptionString,_>(key)
+    get(key)
 }
 
 del key:Bin => u32 {
-    del::<u32,_>(key)
+    del(key)
 }
 
 quit => () {
@@ -311,14 +309,22 @@ quit => () {
 
 set key:Bin val:Bin => () {
     // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
-    set::<(), _, _>(key,val,None,None,false)
+    set(key,val,None,None,false)
 }
 
 
 );
 
+// exist key:Bin => i64 {
+//     exists::<i64,_>(key)
+// }
 #[napi]
 impl Xedis {
+  #[napi]
+  pub async fn exist(&self, key: Bin) -> Result<i64> {
+    Ok(self.c.exists(key).await?)
+  }
+
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
     let map = map.as_ref();
@@ -343,10 +349,8 @@ impl Xedis {
   }
 }
 
-use paste::paste;
-
 macro_rules! zset_range {
-  ($name:ident $func:ident $rt:ty : $m1:ident $m2:ident $score:ident) => {
+  ($name:ident $rt:ty : $func:ident $m1:ident $m2:ident $score:ident) => {
     #[napi]
     impl Xedis {
       #[napi]
@@ -364,42 +368,12 @@ macro_rules! zset_range {
   };
 }
 
-zset_range!(zrangebyscore_withscores zrangebyscore (Val, f64) : min max true);
-zset_range!(zrangebyscore zrangebyscore Val : min max false);
+zset_range!(zrangebyscore_withscores (Val, f64) : zrangebyscore min max true);
+zset_range!(zrangebyscore Val : zrangebyscore  min max false);
 
-zset_range!(zrevrangebyscore_withscores zrevrangebyscore (Val, f64) : max min true);
-zset_range!(zrevrangebyscore zrevrangebyscore Val : max min false);
+zset_range!(zrevrangebyscore_withscores (Val, f64) : zrevrangebyscore max min true);
+zset_range!(zrevrangebyscore Val : zrevrangebyscore  max min false);
 
-//   redis_zrevrangebyscore |cx| {
-//     let a1 = to_bin(cx, 1)?;
-//     let a2 = limit_offset(cx,4)?;
-//     let (max,min) = max_min_score(cx)?;
-//     this!(cx this {
-//       this.zrevrangebyscore::<Vec<Vec<u8>>,_,_,_>(
-//         a1,
-//         max,
-//         min,
-//         false,
-//         a2
-//       )
-//     })
-//   }
-//
-//   redis_zrevrangebyscore_withscores |cx| {
-//     let a1 = to_bin(cx, 1)?;
-//     let a2 = limit_offset(cx,4)?;
-//     let (max,min) = max_min_score(cx)?;
-//     this!(cx this {
-//       this.zrevrangebyscore::<Vec<(Vec<u8>,f64)>,_,_,_>(
-//         a1,
-//         max,
-//         min,
-//         true,
-//         a2
-//       )
-//     })
-//   }
-//
 //   redis_zrem |cx| {
 //     let a1 = to_bin(cx, 1)?;
 //     let a2 = args_bin_li(cx, 2)?;
