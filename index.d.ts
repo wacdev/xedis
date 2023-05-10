@@ -27,6 +27,7 @@ export class Xedis {
   zincrby(zset: Bin, key: Bin, score: number): Promise<number>
   zincr(zset: Bin, key: Bin): Promise<number>
   set(key: Bin, val: Bin): Promise<void>
+  zadd(key: Bin, member: Bin, score: number): Promise<number>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>

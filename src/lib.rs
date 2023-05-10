@@ -162,8 +162,8 @@ macro_rules! def_one_or_li {
                 pub async fn $name(&self, $($arg:$arg_ty,)* key: Either<Vec<Bin>,Bin>) -> Result<u32> {
                     Ok(
                         match key{
-                          Either::A(key)=>self.c.$func($($arg,)* key),
-                          Either::B(key)=>self.c.$func($($arg,)* key)
+                            Either::A(key)=>self.c.$func($($arg,)* key),
+                            Either::B(key)=>self.c.$func($($arg,)* key)
                         }.await?
                     )
                 }
@@ -259,20 +259,20 @@ macro_rules! def {
 }
 
 def! {
-expire key:Bin ex:i64 => bool : expire
-get key:Bin => OptionString : get
-get_b key:Bin => Val : get
-hdel map:Bin key:Bin => u32 : hdel
-hexist map:Bin key:Bin => bool : hexists
-hget map:Bin key:Bin => OptionString : hget
-hget_b map:Bin key:Bin => Val : hget
-hincrby map:Bin key:Bin val:i64 => i64 : hincrby
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
-quit => () : quit
-sadd set:Bin val:Bin => i64 : sadd
-smembers set:Bin => Vec<Val> : smembers
-zscore zset:Bin key:Bin => Option<f64> : zscore
+    expire key:Bin ex:i64 => bool : expire
+        get key:Bin => OptionString : get
+        get_b key:Bin => Val : get
+        hdel map:Bin key:Bin => u32 : hdel
+        hexist map:Bin key:Bin => bool : hexists
+        hget map:Bin key:Bin => OptionString : hget
+        hget_b map:Bin key:Bin => Val : hget
+        hincrby map:Bin key:Bin val:i64 => i64 : hincrby
+        hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
+        hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
+        quit => () : quit
+                     sadd set:Bin val:Bin => i64 : sadd
+                     smembers set:Bin => Vec<Val> : smembers
+                     zscore zset:Bin key:Bin => Option<f64> : zscore
 }
 
 macro_rules! def_with_args {
@@ -299,32 +299,59 @@ macro_rules! def_with_args {
 }
 
 def_with_args!(
-setex key:Bin val:Bin ex:i64 => () {
-    set(key, val, Some(Expiration::EX(ex)), None, false)
-}
+    setex key:Bin val:Bin ex:i64 => () {
+        set(key, val, Some(Expiration::EX(ex)), None, false)
+    }
 
-hincr map:Bin key:Bin => i64 {
-    hincrby(map, key, 1)
-}
+    hincr map:Bin key:Bin => i64 {
+        hincrby(map, key, 1)
+    }
 
-zincrby zset:Bin key:Bin score: f64 => f64 {
-    zincrby(zset,score,key)
-}
+    zincrby zset:Bin key:Bin score: f64 => f64 {
+        zincrby(zset,score,key)
+    }
 
-zincr zset:Bin key:Bin=> f64 {
-    zincrby(zset,1.0,key)
-}
+    zincr zset:Bin key:Bin=> f64 {
+        zincrby(zset,1.0,key)
+    }
 
-set key:Bin val:Bin => () {
-    // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
-    set(key,val,None,None,false)
-}
+    set key:Bin val:Bin => () {
+        // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
+        set(key,val,None,None,false)
+    }
 
 
 );
 
 #[napi]
 impl Xedis {
+  #[napi]
+  pub async fn zadd(&self, key: Bin, member: Bin, score: f64) -> Result<u32> {
+    Ok(
+      // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+      self
+        .c
+        .zadd(key, None, None, false, false, (score, member))
+        .await?,
+    )
+    // Ok(
+    //     match key{
+    //         Either::A(key)=>self.c.$func($($arg,)* key),
+    //         Either::B(key)=>self.c.$func($($arg,)* key)
+    //     }.await?
+    // )
+    //       this.zadd::<f64,_,_>(
+    //         a1,
+    //         None,
+    //         None,
+    //         false,
+    //         false,
+    //         (
+    //           a3,
+    //           a2,
+    //         )
+    //       )
+  }
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
     let map = map.as_ref();
@@ -374,18 +401,6 @@ zset_range!(zrangebyscore Val : zrangebyscore  min max false);
 zset_range!(zrevrangebyscore_withscores (Val, f64) : zrevrangebyscore max min true);
 zset_range!(zrevrangebyscore Val : zrevrangebyscore  max min false);
 
-//   redis_zrem |cx| {
-//     let a1 = to_bin(cx, 1)?;
-//     let a2 = args_bin_li(cx, 2)?;
-//
-//     this!(cx this {
-//       this.zrem::<f64,_,_>(
-//         a1,
-//         a2
-//       )
-//     })
-//   }
-//
 //   redis_zadd |cx| {
 //     let a1 = to_bin(cx, 1)?;
 //     let a2 = to_bin(cx, 2)?;
