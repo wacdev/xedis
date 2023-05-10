@@ -2,6 +2,8 @@
 
 # @w5/xedis
 
+Node.js Warp for [fred.rs](https://github.com/aembke/fred.rs)
+
 ## Install
 
 ```

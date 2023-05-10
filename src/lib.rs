@@ -362,24 +362,8 @@ impl Xedis {
       }
       .await?,
     )
-    // Ok(
-    //     match key{
-    //         Either::A(key)=>self.c.$func($($arg,)* key),
-    //         Either::B(key)=>self.c.$func($($arg,)* key)
-    //     }.await?
-    // )
-    //       this.zadd::<f64,_,_>(
-    //         a1,
-    //         None,
-    //         None,
-    //         false,
-    //         false,
-    //         (
-    //           a3,
-    //           a2,
-    //         )
-    //       )
   }
+
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
     let map = map.as_ref();
