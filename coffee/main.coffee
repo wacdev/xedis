@@ -100,7 +100,7 @@ ava(
       []
     )
     t.deepEqual(
-      await C.zrevrangebyscoreWithscores(zset)
+      await C.zrevrangebyscoreWithscore(zset)
       [
         [
           keye

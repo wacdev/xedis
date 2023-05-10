@@ -44,7 +44,7 @@ export class Xedis {
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
-  zrevrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
+  zrevrangebyscoreWithscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrevrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
 }
 export class Server {

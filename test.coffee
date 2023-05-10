@@ -23,7 +23,7 @@ I = await conn(
 
 key = Buffer.from [2]
 
-console.log await I.zrevrangebyscoreWithscores key
+console.log await I.zrevrangebyscoreWithscore key
 # map = '字典'
 # key = 'xedis键'
 # val = 'test测试'
