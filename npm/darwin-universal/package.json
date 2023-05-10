@@ -1,0 +1,15 @@
+{
+  "name": "@w5/xedis-darwin-universal",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "main": "xedis.darwin-universal.node",
+  "files": [
+    "xedis.darwin-universal.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

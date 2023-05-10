@@ -1,0 +1,18 @@
+{
+  "name": "@w5/xedis-darwin-arm64",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "xedis.darwin-arm64.node",
+  "files": [
+    "xedis.darwin-arm64.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

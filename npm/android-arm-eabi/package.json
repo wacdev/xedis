@@ -1,0 +1,18 @@
+{
+  "name": "@w5/xedis-android-arm-eabi",
+  "version": "0.0.0",
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm"
+  ],
+  "main": "xedis.android-arm-eabi.node",
+  "files": [
+    "xedis.android-arm-eabi.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}
