@@ -9,7 +9,7 @@ console.log await R.xnext(
   'R'
   HOSTNAME
   10 # limit
-  5000 # block
+  6e5 # block
   false # noack
   stream
 )
