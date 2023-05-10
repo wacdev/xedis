@@ -7,6 +7,7 @@ export function conn(server: Server, username: OptionString, password: OptionStr
 export class Xedis {
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
+  zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
   getB(key: Bin): Promise<Val>
   get(key: Bin): Promise<OptionString>
   del(key: Bin): Promise<number>
