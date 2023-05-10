@@ -20,9 +20,13 @@ server = Server.hostPort REDIS_HOST, REDIS_PORT
 I = await conn(
   server, REDIS_USER, REDIS_PASSWORD, REDIS_DB
 )
-map = '字典'
-key = 'xedis键'
-val = 'test测试'
+
+key = Buffer.from [2]
+
+console.log await I.zrevrangebyscoreWithscores key
+# map = '字典'
+# key = 'xedis键'
+# val = 'test测试'
 
 # await I.hset(map, key,val)
 #
@@ -32,7 +36,7 @@ val = 'test测试'
 #
 # console.log '>>', await I.hget(map,key)
 
-await I.hset(map, {'测试':key})
+# await I.hset(map, {'测试':key})
 
-console.log '>>', await I.hget(map,key)
-console.log '>>', await I.hget(map,'测试')
+# console.log '>>', await I.hget(map,key)
+# console.log '>>', await I.hget(map,'测试')
