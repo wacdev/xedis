@@ -373,7 +373,13 @@ macro_rules! zadd {
 
 zadd!(
 zadd None
+
+// 已存在时才设置
 zadd_xx Some(SetOptions::XX)
+
+// 不存在时才设置
+zadd_nx Some(SetOptions::NX)
+
 );
 
 #[napi]
