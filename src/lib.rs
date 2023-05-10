@@ -326,13 +326,33 @@ def_with_args!(
 #[napi]
 impl Xedis {
   #[napi]
-  pub async fn zadd(&self, key: Bin, member: Bin, score: f64) -> Result<u32> {
+  pub async fn zadd(
+    &self,
+    zset: Bin,
+    key: Either<Vec<(Bin, f64)>, Bin>,
+    score: Option<f64>,
+  ) -> Result<u32> {
     Ok(
-      // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
-      self
-        .c
-        .zadd(key, None, None, false, false, (score, member))
-        .await?,
+      if let Some(score) = score {
+        // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+        match key {
+          Either::A(_) => unreachable!(),
+          Either::B(key) => self.c.zadd(zset, None, None, false, false, (score, key)),
+        }
+      } else {
+        match key {
+          Either::A(key) => self.c.zadd(
+            zset,
+            None,
+            None,
+            false,
+            false,
+            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+          ),
+          Either::B(key) => self.c.zrem(zset, key),
+        }
+      }
+      .await?,
     )
     // Ok(
     //     match key{

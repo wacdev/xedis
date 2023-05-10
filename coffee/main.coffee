@@ -129,7 +129,17 @@ ava(
 
     t.is 2, await C.zrem(zset,[key,key2])
 
-    t.is 1, await C.zadd zset, key, score
+    t.is(
+      await C.zadd zset, key, score
+      1
+    )
+    t.is(
+      await C.zadd zset, [
+        [key, score]
+        [key2, score]
+      ]
+      1
+    )
 
     await C.del zset
     t.is null, await C.zscore zset, key
