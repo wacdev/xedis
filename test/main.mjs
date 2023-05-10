@@ -83,6 +83,11 @@ ava('zset', async(t) => {
   t.is(2, (await C.zrem(zset, [key, key2])));
   t.is((await C.zadd(zset, key, score)), 1);
   t.is((await C.zadd(zset, [[key, score], [key2, score]])), 1);
+  t.is((await C.zadd(zset, {
+    a: 1.2,
+    b: 3.2,
+    c: 1.2
+  })), 3);
   await C.del(zset);
   t.is(null, (await C.zscore(zset, key)));
 });

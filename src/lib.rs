@@ -4,7 +4,7 @@ use fred::{
   prelude::{Expiration, ReconnectPolicy, RedisClient, RedisConfig, ServerConfig},
   types::{RedisMap, ZRange, ZRangeBound, ZRangeKind},
 };
-use napi::Either;
+use napi::bindgen_prelude::{Either, Either3};
 use paste::paste;
 pub type OptionString = Option<String>;
 use std::collections::HashMap;
@@ -329,19 +329,19 @@ impl Xedis {
   pub async fn zadd(
     &self,
     zset: Bin,
-    key: Either<Vec<(Bin, f64)>, Bin>,
+    key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
     score: Option<f64>,
   ) -> Result<u32> {
     Ok(
       if let Some(score) = score {
         // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
         match key {
-          Either::A(_) => unreachable!(),
-          Either::B(key) => self.c.zadd(zset, None, None, false, false, (score, key)),
+          Either3::C(key) => self.c.zadd(zset, None, None, false, false, (score, key)),
+          _ => unreachable!(),
         }
       } else {
         match key {
-          Either::A(key) => self.c.zadd(
+          Either3::A(key) => self.c.zadd(
             zset,
             None,
             None,
@@ -349,7 +349,15 @@ impl Xedis {
             false,
             key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
           ),
-          Either::B(key) => self.c.zrem(zset, key),
+          Either3::B(key) => self.c.zadd(
+            zset,
+            None,
+            None,
+            false,
+            false,
+            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+          ),
+          Either3::C(key) => self.c.zrem(zset, key),
         }
       }
       .await?,
