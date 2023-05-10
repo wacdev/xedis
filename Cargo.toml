@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0.71"
 napi-derive = "2.12.5"
+paste = "1.0.12"
 
 [dependencies.fred]
 path = "./lib/fred.rs"

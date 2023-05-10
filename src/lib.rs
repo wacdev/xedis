@@ -87,76 +87,6 @@ macro_rules! opt_mlo {
 }
 
 #[napi]
-impl Xedis {
-  #[napi]
-  pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
-    let map = map.as_ref();
-    Ok(
-      self
-        .c
-        .hset::<(), _, _>(
-          map,
-          match key {
-            napi::Either::A(key) => match val {
-              Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
-              None => {
-                self.c.hdel(map, key).await?;
-                return Ok(());
-              }
-            },
-            napi::Either::B(key) => key.0.try_into()?,
-          },
-        )
-        .await?,
-    )
-  }
-
-  #[napi]
-  pub async fn zrangebyscore(
-    &self,
-    zset: Bin,
-    opt: Option<HashMap<String, StrOrN>>,
-  ) -> Result<Vec<Val>> {
-    let (min, max, limit_offset) = opt_mlo!(opt);
-    Ok(
-      self
-        .c
-        .zrangebyscore(zset, min, max, false, limit_offset)
-        .await?,
-    )
-  }
-
-  #[napi]
-  pub async fn zrangebyscore_withscores(
-    &self,
-    zset: Bin,
-    opt: Option<HashMap<String, StrOrN>>,
-  ) -> Result<Vec<(Val, f64)>> {
-    let (min, max, limit_offset) = opt_mlo!(opt);
-    Ok(
-      self
-        .c
-        .zrangebyscore(zset, min, max, true, limit_offset)
-        .await?,
-    )
-  }
-  //   redis_zrangebyscore_withscores |cx| {
-  //     let a1 = to_bin(cx, 1)?;
-  //     let a2 = limit_offset(cx,4)?;
-  //     let (min,max) = min_max_score(cx)?;
-  //     this!(cx this {
-  //       this.zrangebyscore::<Vec<(Vec<u8>,f64)>,_,_,_>(
-  //         a1,
-  //         min,
-  //         max,
-  //         true,
-  //         a2
-  //       )
-  //     })
-  //   }
-}
-
-#[napi]
 pub struct Server {
   c: ServerConfig,
 }
@@ -387,7 +317,59 @@ set key:Bin val:Bin => () {
 
 );
 
-//
+#[napi]
+impl Xedis {
+  #[napi]
+  pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
+    let map = map.as_ref();
+    Ok(
+      self
+        .c
+        .hset::<(), _, _>(
+          map,
+          match key {
+            napi::Either::A(key) => match val {
+              Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
+              None => {
+                self.c.hdel(map, key).await?;
+                return Ok(());
+              }
+            },
+            napi::Either::B(key) => key.0.try_into()?,
+          },
+        )
+        .await?,
+    )
+  }
+}
+
+use paste::paste;
+
+macro_rules! zset_range {
+  ($name:ident $func:ident $rt:ty : $m1:ident $m2:ident $score:ident) => {
+    #[napi]
+    impl Xedis {
+      #[napi]
+      pub async fn $name(
+        &self,
+        zset: Bin,
+        opt: Option<HashMap<String, StrOrN>>,
+      ) -> Result<Vec<$rt>> {
+        let (min, max, limit_offset) = opt_mlo!(opt);
+        paste! {
+            Ok(self.c.$func(zset, [<$m1>], [<$m2>], $score, limit_offset).await?)
+        }
+      }
+    }
+  };
+}
+
+zset_range!(zrangebyscore_withscores zrangebyscore (Val, f64) : min max true);
+zset_range!(zrangebyscore zrangebyscore Val : min max false);
+
+zset_range!(zrevrangebyscore_withscores zrevrangebyscore (Val, f64) : max min true);
+zset_range!(zrevrangebyscore zrevrangebyscore Val : max min false);
+
 //   redis_zrevrangebyscore |cx| {
 //     let a1 = to_bin(cx, 1)?;
 //     let a2 = limit_offset(cx,4)?;

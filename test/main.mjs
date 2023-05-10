@@ -60,6 +60,9 @@ ava('zset', async(t) => {
   t.deepEqual((await C.zrangebyscore(zset, {
     offset: 1
   })), [keye]);
+  t.deepEqual((await C.zrevrangebyscore(zset, {
+    offset: 1
+  })), [key2e]);
   t.deepEqual([key2e], (await C.zrangebyscore(zset, {
     limit: 1
   })));
@@ -75,6 +78,7 @@ ava('zset', async(t) => {
   t.deepEqual(((await C.zrangebyscore(zset, {
     max: '(' + score
   }))).map(utf8d), []);
+  t.deepEqual((await C.zrevrangebyscoreWithscores(zset)), [[keye, score + 1], [key2e, score]]);
   t.deepEqual((await C.zrangebyscoreWithscores(zset)), [[key2e, score], [keye, score + 1]]);
   await C.del(zset);
   t.is(null, (await C.zscore(zset, key)));

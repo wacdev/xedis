@@ -5,9 +5,6 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
-  hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
-  zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
-  zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   setex(key: Bin, val: Bin, ex: number): Promise<void>
   expire(key: Bin, ex: number): Promise<boolean>
   exist(key: Bin): Promise<number>
@@ -29,6 +26,11 @@ export class Xedis {
   del(key: Bin): Promise<number>
   quit(): Promise<void>
   set(key: Bin, val: Bin): Promise<void>
+  hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
+  zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
+  zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
+  zrevrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
+  zrevrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
 }
 export class Server {
   static cluster(hostPortLi: Array<[string, number]>): Server
