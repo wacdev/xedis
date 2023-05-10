@@ -155,6 +155,27 @@ macro_rules! def {
             $name:ident
             $($arg:ident:$arg_ty:ty)*
             =>
+            $rt:ty : $func:ident
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
+            $(
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
+                    Ok(self.c.$func($($arg),*).await?)
+                }
+            )*
+        }
+    };
+}
+
+macro_rules! def_with_args {
+    (
+        $(
+            $name:ident
+            $($arg:ident:$arg_ty:ty)*
+            =>
             $rt:ty {
                 $($more:tt)*
             }
@@ -229,54 +250,31 @@ macro_rules! def {
 //   }
 // }
 //
-def!(
+
+def! {
+expire key:Bin ex:i64 => bool : expire
+get key:Bin => OptionString : get
+get_b key:Bin => Val : get
+hdel map:Bin key:Bin => u32 : hdel
+hexist map:Bin key:Bin => bool : hexists
+hget map:Bin key:Bin => OptionString : hget
+hget_b map:Bin key:Bin => Val : hget
+hincrby map:Bin key:Bin val:i64 => i64 : hincrby
+hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
+hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
+quit => () : quit
+sadd set:Bin val:Bin => i64 : sadd
+smembers set:Bin => Vec<Val> : smembers
+zscore zset:Bin key:Bin => Option<f64> : zscore
+}
+
+def_with_args!(
 setex key:Bin val:Bin ex:i64 => () {
     set(key, val, Some(Expiration::EX(ex)), None, false)
 }
 
-expire key:Bin ex:i64 => bool {
-    expire(key, ex)
-}
-
-hexist map:Bin key:Bin => bool {
-    hexists(map,key)
-}
-
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> {
-    hmget(map,li)
-}
-
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> {
-    hmget(map,li)
-}
-
-hget map:Bin key:Bin => OptionString {
-    hget(map,key)
-}
-
-hget_b map:Bin key:Bin => Val {
-    hget(map,key)
-}
-
-hdel map:Bin key:Bin => u32 {
-    hdel(map,key)
-}
-
 hincr map:Bin key:Bin => i64 {
     hincrby(map, key, 1)
-}
-
-hincrby map:Bin key:Bin val:i64 => i64 {
-    hincrby(map, key, val)
-}
-
-
-sadd set:Bin val:Bin => i64 {
-    sadd(set,val)
-}
-
-smembers set:Bin => Vec<Val> {
-    smembers(set)
 }
 
 zincrby zset:Bin key:Bin score: f64 => f64 {
@@ -287,26 +285,6 @@ zincr zset:Bin key:Bin=> f64 {
     zincrby(zset,1.0,key)
 }
 
-zscore zset:Bin key:Bin => Option<f64> {
-    zscore(zset, key)
-}
-
-get_b key:Bin => Val {
-    get(key)
-}
-
-get key:Bin => OptionString {
-    get(key)
-}
-
-del key:Bin => u32 {
-    del(key)
-}
-
-quit => () {
-    quit()
-}
-
 set key:Bin val:Bin => () {
     // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
     set(key,val,None,None,false)
@@ -315,14 +293,27 @@ set key:Bin val:Bin => () {
 
 );
 
-// exist key:Bin => i64 {
-//     exists::<i64,_>(key)
-// }
 #[napi]
 impl Xedis {
   #[napi]
-  pub async fn exist(&self, key: Bin) -> Result<i64> {
-    Ok(self.c.exists(key).await?)
+  pub async fn del(&self, key: Either<Bin, Vec<Bin>>) -> Result<i64> {
+    Ok(
+      match key {
+        Either::A(key) => self.c.del(key),
+        Either::B(key) => self.c.del(key),
+      }
+      .await?,
+    )
+  }
+  #[napi]
+  pub async fn exist(&self, key: Either<Bin, Vec<Bin>>) -> Result<i64> {
+    Ok(
+      match key {
+        Either::A(key) => self.c.exists(key),
+        Either::B(key) => self.c.exists(key),
+      }
+      .await?,
+    )
   }
 
   #[napi]

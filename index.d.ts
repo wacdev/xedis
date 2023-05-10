@@ -5,27 +5,27 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
-  setex(key: Bin, val: Bin, ex: number): Promise<void>
   expire(key: Bin, ex: number): Promise<boolean>
+  get(key: Bin): Promise<OptionString>
+  getB(key: Bin): Promise<Val>
+  hdel(map: Bin, key: Bin): Promise<number>
   hexist(map: Bin, key: Bin): Promise<boolean>
-  hmget(map: Bin, li: Array<Bin>): Promise<Array<OptionString>>
-  hmgetB(map: Bin, li: Array<Bin>): Promise<Array<Val>>
   hget(map: Bin, key: Bin): Promise<OptionString>
   hgetB(map: Bin, key: Bin): Promise<Val>
-  hdel(map: Bin, key: Bin): Promise<number>
-  hincr(map: Bin, key: Bin): Promise<number>
   hincrby(map: Bin, key: Bin, val: number): Promise<number>
+  hmget(map: Bin, li: Array<Bin>): Promise<Array<OptionString>>
+  hmgetB(map: Bin, li: Array<Bin>): Promise<Array<Val>>
+  quit(): Promise<void>
   sadd(set: Bin, val: Bin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
+  zscore(zset: Bin, key: Bin): Promise<number | null>
+  setex(key: Bin, val: Bin, ex: number): Promise<void>
+  hincr(map: Bin, key: Bin): Promise<number>
   zincrby(zset: Bin, key: Bin, score: number): Promise<number>
   zincr(zset: Bin, key: Bin): Promise<number>
-  zscore(zset: Bin, key: Bin): Promise<number | null>
-  getB(key: Bin): Promise<Val>
-  get(key: Bin): Promise<OptionString>
-  del(key: Bin): Promise<number>
-  quit(): Promise<void>
   set(key: Bin, val: Bin): Promise<void>
-  exist(key: Bin): Promise<number>
+  del(key: Bin | Array<Bin>): Promise<number>
+  exist(key: Bin | Array<Bin>): Promise<number>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscores(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>

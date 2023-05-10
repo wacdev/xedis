@@ -171,14 +171,23 @@ ava(
   'get'
   (t)=>
     key = KEY+'get'
+    key2 = key+2
     val = 'test测试'
     await C.del(key)
+    await C.del(key2)
     await C.set(key,val)
+    await C.set(key2,val)
+
+    t.is await C.exist(key), 1
+    t.is await C.exist([key,key2]), 2
+    t.is await C.exist([key,key,key2]), 3
+
     t.deepEqual utf8e(val), await C.getB(key)
     t.deepEqual val, await C.get(key)
-    t.is 1, await C.del(key)
+    t.is await C.del([key2,key]), 2
     t.is 0, await C.del(key)
     t.is null,await C.get(key)
+    t.is null,await C.get(key2)
     return
 )
 
