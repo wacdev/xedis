@@ -47,6 +47,22 @@ pub struct Xedis {
 #[napi]
 impl Xedis {
   #[napi]
+  pub async fn xadd(&self, key: Bin, val: Vec<(Bin, Bin)>) -> Result<()> {
+    Ok(
+      self
+        .c
+        .xadd(
+          key,
+          false,    // nomkstream
+          Some(()), // cap
+          XID::Auto,
+          val,
+        )
+        .await?,
+    )
+  }
+
+  #[napi]
   pub async fn xnext(
     &self,
     group: Bin,
