@@ -93,6 +93,19 @@ ava(
       []
     )
 
+    t.deepEqual(
+      await C.zrangebyscoreWithscores(zset)
+      [
+        [
+          key2e
+          score
+        ]
+        [
+          keye
+          score+1
+        ]
+      ]
+    )
     await C.del zset
     t.is null, await C.zscore zset, key
     return

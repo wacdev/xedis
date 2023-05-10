@@ -362,6 +362,7 @@ zincr zset:Bin key:Bin=> f64 {
 zscore zset:Bin key:Bin => Option<f64> {
     zscore::<Option<f64>,_,_>(zset, key)
 }
+
 get_b key:Bin => Val {
     get::<Val,_>(key)
 }
