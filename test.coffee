@@ -21,7 +21,7 @@ I = await conn(
   server, REDIS_USER, REDIS_PASSWORD, REDIS_DB
 )
 
-key = Buffer.from [2]
+key = new Uint8Array [2]
 
 console.log await I.zrevrangebyscoreWithscore key
 # map = '字典'
