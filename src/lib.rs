@@ -149,6 +149,29 @@ pub async fn conn(
   Ok(Xedis { c: client })
 }
 
+macro_rules! def_one_or_li {
+    (
+        $(
+            $name:ident : $func:ident
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
+            $(
+                #[napi]
+                pub async fn $name(&self, key: Either<Vec<Bin>,Bin>) -> Result<i64> {
+                    Ok(
+                        match key{
+                          Either::A(key)=>self.c.$func(key),
+                          Either::B(key)=>self.c.$func(key)
+                        }.await?
+                    )
+                }
+            )*
+        }
+    };
+}
+
 macro_rules! def {
     (
         $(
@@ -293,29 +316,13 @@ set key:Bin val:Bin => () {
 
 );
 
+def_one_or_li!(
+    del : del
+    exist : exists
+);
+
 #[napi]
 impl Xedis {
-  #[napi]
-  pub async fn del(&self, key: Either<Bin, Vec<Bin>>) -> Result<i64> {
-    Ok(
-      match key {
-        Either::A(key) => self.c.del(key),
-        Either::B(key) => self.c.del(key),
-      }
-      .await?,
-    )
-  }
-  #[napi]
-  pub async fn exist(&self, key: Either<Bin, Vec<Bin>>) -> Result<i64> {
-    Ok(
-      match key {
-        Either::A(key) => self.c.exists(key),
-        Either::B(key) => self.c.exists(key),
-      }
-      .await?,
-    )
-  }
-
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
     let map = map.as_ref();
