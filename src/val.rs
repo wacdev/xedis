@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Formatter};
+
 use fred::{
   prelude::{FromRedis, RedisError},
   types::RedisValue,
@@ -8,6 +10,18 @@ use napi::{
 };
 
 pub struct Val(Option<Uint8Array>);
+
+impl Debug for Val {
+  fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fmt.write_str("Val:")?;
+    let msg;
+    match &self.0 {
+      Some(val) => msg = std::string::String::from_utf8_lossy(&val),
+      None => msg = "None".into(),
+    }
+    fmt.write_str(&msg)
+  }
+}
 
 impl ToNapiValue for Val {
   unsafe fn to_napi_value(env: napi_env, this: Self) -> Result<napi_value, napi::Error> {

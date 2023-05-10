@@ -12,10 +12,10 @@ napi-derive = "2.12.5"
 paste = "1.0.12"
 
 [dependencies.fred]
-#path = "./lib/fred.rs"
+path = "./lib/fred.rs"
 features = ["replicas", "rustls"]
-version = "6.2.1"
 
+#version = "6.2.1"
 [dependencies.napi]
 path = "../napi-rs/crates/napi"
 default-features = false

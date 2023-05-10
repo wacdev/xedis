@@ -71,7 +71,7 @@ impl Xedis {
     block: Option<u64>,
     noack: bool,
     key: Bin,
-  ) -> Result<Vec<Vec<(Val, Vec<(Val, Vec<Val>)>)>>> {
+  ) -> Result<Vec<(Val, Vec<(Val, Vec<(Val, Val)>)>)>> {
     let key = key.as_ref();
     let consumer = from_utf8(consumer.as_ref())?;
     let group = from_utf8(group.as_ref())?;
@@ -83,7 +83,6 @@ impl Xedis {
       Ok(r) => Ok(r),
       Err(err) => {
         if err.kind() == &Unknown {
-          dbg!(err.details());
           if err.details().starts_with("NOGROUP ") {
             self
               .c

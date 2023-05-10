@@ -5,13 +5,11 @@
 
 stream = 'task'
 HOSTNAME = hostname()
-console.log await R.xnext(
-  'R'
-  HOSTNAME
-  10 # limit
-  6e5 # block
-  false # noack
+console.log await R.xadd(
   stream
+  [
+    ['-',JSON.stringify(['good','yes'])]
+  ]
 )
 
 # key = new Uint8Array [2]
