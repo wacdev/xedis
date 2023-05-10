@@ -32,6 +32,7 @@ export class Xedis {
   fnumR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<number | null>
   fstr(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
   fstrR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
+  xreadgroup(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, keys: Array<Bin>): Promise<Array<[Val, Val]>>
   setex(key: Bin, val: Bin, ex: number): Promise<void>
   fnload(code: Bin): Promise<string>
   hincr(map: Bin, key: Bin): Promise<number>

@@ -2,10 +2,10 @@ use anyhow::Result;
 use fred::{
   interfaces::{
     ClientLike, FunctionInterface, HashesInterface, KeysInterface, SetsInterface,
-    SortedSetsInterface,
+    SortedSetsInterface, StreamsInterface,
   },
   prelude::{Expiration, ReconnectPolicy, RedisClient, RedisConfig, ServerConfig},
-  types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind},
+  types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind, XID},
 };
 use napi::bindgen_prelude::{Either, Either3};
 use paste::paste;
@@ -272,6 +272,11 @@ macro_rules! def_with_args {
 }
 
 def_with_args!(
+
+    xreadgroup group:Bin consumer:Bin count:Option<u64> block:Option<u64> noack:bool keys:Vec<Bin> => Vec<(Val,Val)> {
+        xreadgroup(group,consumer,count,block,noack,keys,XID::NewInGroup)
+    }
+
     setex key:Bin val:Bin ex:i64 => () {
         set(key, val, Some(Expiration::EX(ex)), None, false)
     }
