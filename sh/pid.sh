@@ -4,6 +4,9 @@ RED='\033[0;31m'
 END='\033[0m'
 
 lock="/tmp/${SCRIPT_NAME//\//_}.pid"
+
+trap "set +x;rm -f $lock; exit $?" INT TERM EXIT
+
 mkdir -p $(dirname $lock)
 
 if [[ -f "$lock" ]]; then
@@ -18,5 +21,4 @@ if [[ -f "$lock" ]]; then
   done
 fi
 
-trap "rm -f $lock; exit $?" INT TERM EXIT
 echo $PID >$lock
