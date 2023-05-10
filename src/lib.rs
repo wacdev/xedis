@@ -1,10 +1,14 @@
+use std::str::from_utf8;
+
 use anyhow::Result;
 use fred::{
   interfaces::{
     ClientLike, FunctionInterface, HashesInterface, KeysInterface, SetsInterface,
     SortedSetsInterface, StreamsInterface,
   },
-  prelude::{Expiration, ReconnectPolicy, RedisClient, RedisConfig, ServerConfig},
+  prelude::{
+    Expiration, ReconnectPolicy, RedisClient, RedisConfig, RedisErrorKind::Unknown, ServerConfig,
+  },
   types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind, XID},
 };
 use napi::bindgen_prelude::{Either, Either3};
@@ -39,6 +43,73 @@ pub type BinOrMap = Either<Bin, Map>;
 pub struct Xedis {
   c: RedisClient,
 }
+
+#[napi]
+impl Xedis {
+  #[napi]
+  pub async fn xnext(
+    &self,
+    group: Bin,
+    consumer: Bin,
+    count: Option<u64>,
+    block: Option<u64>,
+    noack: bool,
+    key: Bin,
+  ) -> Result<Vec<(Val, Val)>> {
+    let key = key.as_ref();
+    let consumer = from_utf8(consumer.as_ref())?;
+    let group = from_utf8(group.as_ref())?;
+    match self
+      .c
+      .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
+      .await
+    {
+      Ok(r) => Ok(r),
+      Err(err) => {
+        if err.kind() == &Unknown {
+          dbg!(err.details());
+          if err.details().starts_with("NOGROUP ") {
+            self
+              .c
+              .xgroup_create(key, group, XID::Manual("0".into()), true)
+              .await?;
+            return Ok(
+              self
+                .c
+                .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
+                .await?,
+            );
+          }
+        }
+        Err(err.into())
+      }
+    }
+  }
+
+  #[napi]
+  pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
+    let map = map.as_ref();
+    Ok(
+      self
+        .c
+        .hset::<(), _, _>(
+          map,
+          match key {
+            napi::Either::A(key) => match val {
+              Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
+              None => {
+                self.c.hdel(map, key).await?;
+                return Ok(());
+              }
+            },
+            napi::Either::B(key) => key.0.try_into()?,
+          },
+        )
+        .await?,
+    )
+  }
+}
+
 macro_rules! i64 {
   ($opt:ident,$key:ident,$default:expr) => {
     match $opt.get(stringify!($key)) {
@@ -203,22 +274,22 @@ macro_rules! def {
 }
 
 def! {
-expire key:Bin ex:i64 => bool : expire
-get key:Bin => OptionString : get
-get_b key:Bin => Val : get
-hdel map:Bin key:Bin => u32 : hdel
-hexist map:Bin key:Bin => bool : hexists
-hget map:Bin key:Bin => OptionString : hget
-hget_b map:Bin key:Bin => Val : hget
-hincrby map:Bin key:Bin val:i64 => i64 : hincrby
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
-quit => () : quit
-sadd set:Bin val:Bin => i64 : sadd
-smembers set:Bin => Vec<Val> : smembers
-zscore zset:Bin key:Bin => Option<f64> : zscore
-fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall
-fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro
+    expire key:Bin ex:i64 => bool : expire
+        get key:Bin => OptionString : get
+        get_b key:Bin => Val : get
+        hdel map:Bin key:Bin => u32 : hdel
+        hexist map:Bin key:Bin => bool : hexists
+        hget map:Bin key:Bin => OptionString : hget
+        hget_b map:Bin key:Bin => Val : hget
+        hincrby map:Bin key:Bin val:i64 => i64 : hincrby
+        hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
+        hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
+        quit => () : quit
+                     sadd set:Bin val:Bin => i64 : sadd
+                     smembers set:Bin => Vec<Val> : smembers
+                     zscore zset:Bin key:Bin => Option<f64> : zscore
+                     fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall
+                                                                      fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro
 }
 
 macro_rules! fcall {
@@ -242,10 +313,10 @@ macro_rules! fcall {
 }
 
 fcall!(
-  fbool bool;
-  fbin Val;
-  fnum f64;
-  fstr String;
+    fbool bool;
+    fbin Val;
+    fnum f64;
+    fstr String;
 );
 
 macro_rules! def_with_args {
@@ -273,10 +344,6 @@ macro_rules! def_with_args {
 
 def_with_args!(
 
-    xreadgroup group:Bin consumer:Bin count:Option<u64> block:Option<u64> noack:bool keys:Vec<Bin> => Vec<(Val,Val)> {
-        xreadgroup(group,consumer,count,block,noack,keys,XID::NewInGroup)
-    }
-
     setex key:Bin val:Bin ex:i64 => () {
         set(key, val, Some(Expiration::EX(ex)), None, false)
     }
@@ -297,98 +364,72 @@ def_with_args!(
         zincrby(zset,1.0,key)
     }
 
-    set key:Bin val:Bin => () {
-        // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
-        set(key,val,None,None,false)
+set key:Bin val:Bin => () {
+    // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
+    set(key,val,None,None,false)
     }
 
 );
 
 macro_rules! zadd {
-  ($($name:ident $set_opt:expr)*) => {
-    #[napi]
-    impl Xedis {
-      $(
-      #[napi]
-      pub async fn $name(
-        &self,
-        zset: Bin,
-        key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
-        score: Option<f64>,
-      ) -> Result<u32> {
-        Ok(
-          if let Some(score) = score {
-            // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
-            match key {
-              Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
-              _ => unreachable!(),
-            }
-          } else {
-            match key {
-              Either3::A(key) => self.c.zadd(
-                zset,
-                $set_opt,
-                None,
-                false,
-                false,
-                key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-              ),
-              Either3::B(key) => self.c.zadd(
-                zset,
-                $set_opt,
-                None,
-                false,
-                false,
-                key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-              ),
-              Either3::C(key) => self.c.zrem(zset, key),
-            }
-          }
-          .await?,
-        )
-      }
-      )*
-    }
-  };
+    ($($name:ident $set_opt:expr)*) => {
+        #[napi]
+        impl Xedis {
+            $(
+                #[napi]
+                pub async fn $name(
+                    &self,
+                    zset: Bin,
+                    key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
+                    score: Option<f64>,
+                ) -> Result<u32> {
+                    Ok(
+                        if let Some(score) = score {
+                            // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+                            match key {
+                                Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
+                                _ => unreachable!(),
+                            }
+                        } else {
+                            match key {
+                                Either3::A(key) => self.c.zadd(
+                                    zset,
+                                    $set_opt,
+                                    None,
+                                    false,
+                                    false,
+                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                                ),
+                                Either3::B(key) => self.c.zadd(
+                                    zset,
+                                    $set_opt,
+                                    None,
+                                    false,
+                                    false,
+                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                                ),
+                                Either3::C(key) => self.c.zrem(zset, key),
+                            }
+                        }
+                    .await?,
+                    )
+                }
+            )*
+        }
+    };
 }
 
 zadd!(
 
-zadd None
+    zadd None
 
-// 已存在时才设置
-zadd_xx Some(SetOptions::XX)
+    // 已存在时才设置
+    zadd_xx Some(SetOptions::XX)
 
-// 不存在时才设置
-zadd_nx Some(SetOptions::NX)
+    // 不存在时才设置
+    zadd_nx Some(SetOptions::NX)
 
 );
-
-#[napi]
-impl Xedis {
-  #[napi]
-  pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
-    let map = map.as_ref();
-    Ok(
-      self
-        .c
-        .hset::<(), _, _>(
-          map,
-          match key {
-            napi::Either::A(key) => match val {
-              Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
-              None => {
-                self.c.hdel(map, key).await?;
-                return Ok(());
-              }
-            },
-            napi::Either::B(key) => key.0.try_into()?,
-          },
-        )
-        .await?,
-    )
-  }
-}
 
 macro_rules! zset_range {
   ($name:ident $rt:ty : $func:ident $m1:ident $m2:ident $score:ident) => {

@@ -5,6 +5,8 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
+  xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Val]>>
+  hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   del(key: Array<Bin> | Bin): Promise<number>
   exist(key: Array<Bin> | Bin): Promise<number>
   zrem(key: Bin, key: Array<Bin> | Bin): Promise<number>
@@ -32,7 +34,6 @@ export class Xedis {
   fnumR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<number | null>
   fstr(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
   fstrR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<string | null>
-  xreadgroup(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, keys: Array<Bin>): Promise<Array<[Val, Val]>>
   setex(key: Bin, val: Bin, ex: number): Promise<void>
   fnload(code: Bin): Promise<string>
   hincr(map: Bin, key: Bin): Promise<number>
@@ -42,7 +43,6 @@ export class Xedis {
   zadd(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
   zaddXx(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
   zaddNx(zset: Bin, key: Record<string, number> | Array<[Bin, number]> | Bin, score?: number | undefined | null): Promise<number>
-  hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   zrangebyscoreWithscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>
   zrangebyscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<Val>>
   zrevrangebyscoreWithscore(zset: Bin, opt?: Record<string, StrOrN> | undefined | null): Promise<Array<[Val, number]>>

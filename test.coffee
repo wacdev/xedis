@@ -1,6 +1,7 @@
 #!/usr/bin/env coffee
 
 > ./index.js > Server conn
+  os > hostname
 {
   REDIS_HOST_PORT
   REDIS_PASSWORD
@@ -17,13 +18,24 @@ REDIS_PORT = +REDIS_PORT or 6379
 
 server = Server.hostPort REDIS_HOST, REDIS_PORT
 
-I = await conn(
+R = await conn(
   server, REDIS_USER, REDIS_PASSWORD, REDIS_DB
 )
 
-key = new Uint8Array [2]
+stream = 'task'
+HOSTNAME = hostname()
+console.log await R.xnext(
+  'R'
+  HOSTNAME
+  10 # limit
+  5 # block
+  false # noack
+  stream
+)
 
-console.log await I.zrevrangebyscoreWithscore key
+# key = new Uint8Array [2]
+#
+# console.log await I.zrevrangebyscoreWithscore key
 # map = '字典'
 # key = 'xedis键'
 # val = 'test测试'
