@@ -219,6 +219,9 @@ jobs:
       - name: Test bindings
         shell: bash
         run: yarn test
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   test-linux-x64-gnu-binding:
     name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
     needs:
@@ -248,7 +251,10 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
+        run: docker run -e REDIS_PASSWORD=$REDIS_PASSWORD -e REDIS_HOST_PORT=$REDIS_HOST_PORT --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -280,7 +286,10 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine yarn test
+        run: docker run -e REDIS_PASSWORD=$REDIS_PASSWORD -e REDIS_HOST_PORT=$REDIS_HOST_PORT --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine yarn test
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   test-linux-aarch64-gnu-binding:
     name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
     needs:
@@ -320,6 +329,9 @@ jobs:
             set -e
             yarn test
             ls -la
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -353,6 +365,9 @@ jobs:
           run: |
             set -e
             yarn test
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   test-linux-arm-gnueabihf-binding:
     name: Test bindings on armv7-unknown-linux-gnueabihf - node@${{ matrix.node }}
     needs:
@@ -391,6 +406,9 @@ jobs:
             set -e
             yarn test
             ls -la
+        env:
+          REDIS_HOST_PORT: ${{ secrets.REDIS_HOST_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   universal-macOS:
     name: Build universal macOS binary
     needs:

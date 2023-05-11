@@ -236,4 +236,4 @@ ava(
 
 output :
 
-+ bunx ava
+./out.txt

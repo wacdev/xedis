@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "type": "module",
   "types": "index.d.ts",
   "exports": {
@@ -61,7 +61,7 @@
     "build": "./sh/build.sh --release",
     "build:debug": "./sh/build.sh",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "./sh/test.sh",
+    "test": "ava",
     "universal": "napi universal",
     "version": "napi version"
   },
