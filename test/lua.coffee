@@ -5,21 +5,11 @@
   @w5/read
   @w5/uridir
   path > join
-  chalk
   os > hostname
 
 customer = hostname()
 
-{greenBright} = chalk
-
-readLua = (name)=>
-  read join uridir(import.meta),name+'.lua'
-
-lua = readLua('test')
-
-await RedisLua(R).XedisTest(lua)
-
-console.log(
+xpendclaim = =>
   JSON.parse await R.fstr(
     'xpendclaim'
     [
@@ -32,4 +22,24 @@ console.log(
       '2'   # limit
     ]
   )
+
+lua = (func, R, name, fp)=>
+  (args...)=>
+    try
+      return await func(...args)
+    catch err
+      if err.code == 'GenericFailure' and err.message == 'Unknown Error: ERR Function not found'
+        await RedisLua(R)[name](read fp)
+        return await func(...args)
+      else
+        throw err
+    return
+
+xpendclaim = lua(
+  xpendclaim,
+  R,
+  'XedisTest',
+  join uridir(import.meta),'test.lua'
 )
+
+console.log await xpendclaim()
