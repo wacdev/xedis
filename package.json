@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "type": "module",
   "types": "index.d.ts",
   "exports": {
@@ -19,7 +19,6 @@
         "aarch64-unknown-linux-musl",
         "armv7-unknown-linux-gnueabihf",
         "x86_64-unknown-linux-musl",
-        "x86_64-unknown-freebsd",
         "armv7-linux-androideabi",
         "universal-apple-darwin"
       ]
