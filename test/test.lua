@@ -30,7 +30,7 @@ function xpendclaim(keys, args)
     local r = {}
     for _, v in ipairs(xclaim(stream, group, customer, idle, unpack(id_li))) do
       local id, msg = unpack(v)
-      table.insert(r, { id_retry[id], id, msg })
+      table.insert(r, { id_retry[id], id, msg[2] })
     end
     return cjson.encode(r)
   else
