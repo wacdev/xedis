@@ -47,6 +47,23 @@ pub struct Xedis {
 #[napi]
 impl Xedis {
   #[napi]
+  pub async fn xadd_li(&self, key: Bin, val_li: Vec<Vec<(Bin, Bin)>>) -> Result<()> {
+    let p = self.c.pipeline();
+    let key = key.as_ref();
+    for val in val_li.into_iter() {
+      p.xadd(
+        key,
+        false,    // nomkstream
+        Some(()), // cap
+        XID::Auto,
+        val,
+      )
+      .await?;
+    }
+    Ok(p.all().await?)
+  }
+
+  #[napi]
   pub async fn xadd(&self, key: Bin, val: Vec<(Bin, Bin)>) -> Result<()> {
     Ok(
       self
