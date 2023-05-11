@@ -2,8 +2,9 @@
 
 > ./R
   os > hostname
+  msgpackr > pack
 
-stream = 'task'
+stream = 'testTask'
 HOSTNAME = hostname()
 
 rstr = =>
@@ -12,7 +13,10 @@ rstr = =>
 await R.xadd(
   stream
   [
-    ['-',JSON.stringify({'<':rstr()})]
+    [
+      pack 1
+      pack {'<':rstr()}
+    ]
   ]
 )
 
@@ -20,10 +24,16 @@ await R.xaddLi(
   stream
   [
     [
-      ['-',JSON.stringify('A'+rstr())]
+      [
+        pack 2
+        pack('A'+rstr())
+      ]
     ]
     [
-      ['-',JSON.stringify('B'+rstr())]
+      [
+        pack 3
+        pack(['B'+rstr()])
+      ]
     ]
   ]
 )

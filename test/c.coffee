@@ -3,8 +3,9 @@
 > ./R
   os > hostname
   @w5/utf8/utf8d
+  msgpackr > unpack
 
-stream = 'task'
+stream = 'testTask'
 group = 'C'
 customer = hostname()
 
@@ -22,7 +23,7 @@ while n++ < 100
     for [id, msg] from li
       console.log id
       for [k,v] from msg
-        console.log utf8d(k),utf8d(v)
+        console.log unpack(k),unpack(v)
 
 # key = new Uint8Array [2]
 #

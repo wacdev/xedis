@@ -30,14 +30,17 @@ main = dot (stream)=> (redis, idle, limit, customer = hostname(), group='C') =>
         ].map((i)=>''+i)
       )
       if r
-        return unpack r
+        r = unpack r
+        # for [id, retry, ...kv] from r
+        #   console.log id, retry, kv
+        return r
       []
   ]
 
 
 [
   xpendclaim
-] = main.task(
+] = main.testTask(
   R
   1e3 # 6e5 # idle
   30 #

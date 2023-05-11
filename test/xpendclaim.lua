@@ -33,8 +33,14 @@ function xpendclaim(keys, args)
     local r = {}
     for _, v in ipairs(xclaim(stream, group, customer, idle, unpack(id_li))) do
       local id, msg = unpack(v)
+
+      for i, v in ipairs(msg) do
+        msg[i] = cmsgpack.unpack(v)
+      end
+
       table.insert(msg, 1, id_retry[id])
       table.insert(msg, 1, id)
+
       table.insert(r, msg)
     end
     return cmsgpack.pack(r)

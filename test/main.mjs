@@ -18,9 +18,9 @@ import {
 
 import os from 'os';
 
-({REDIS_HOST_PORT, REDIS_PASSWORD} = process.env);
+({REDIS_HOST_PORT, REDIS_PASSWORD, REDIS_USER, REDIS_DB} = process.env);
 
-[REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_USER] = REDIS_HOST_PORT.split(':');
+[REDIS_HOST, REDIS_PORT] = REDIS_HOST_PORT.split(':');
 
 REDIS_PORT = +REDIS_PORT || 6379;
 
