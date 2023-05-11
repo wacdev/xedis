@@ -16,7 +16,7 @@ impl Debug for Val {
     fmt.write_str("Val:")?;
     let msg;
     match &self.0 {
-      Some(val) => msg = std::string::String::from_utf8_lossy(&val),
+      Some(val) => msg = std::string::String::from_utf8_lossy(val),
       None => msg = "None".into(),
     }
     fmt.write_str(&msg)

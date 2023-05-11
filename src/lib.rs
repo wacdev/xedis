@@ -99,19 +99,17 @@ impl Xedis {
     {
       Ok(r) => Ok(r),
       Err(err) => {
-        if err.kind() == &Unknown {
-          if err.details().starts_with("NOGROUP ") {
+        if err.kind() == &Unknown && err.details().starts_with("NOGROUP ") {
+          self
+            .c
+            .xgroup_create(key, group, XID::Manual("0".into()), true)
+            .await?;
+          return Ok(
             self
               .c
-              .xgroup_create(key, group, XID::Manual("0".into()), true)
-              .await?;
-            return Ok(
-              self
-                .c
-                .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
-                .await?,
-            );
-          }
+              .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
+              .await?,
+          );
         }
         Err(err.into())
       }

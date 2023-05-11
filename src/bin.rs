@@ -16,9 +16,9 @@ impl AsRef<[u8]> for Bin {
   }
 }
 
-impl Into<Str> for Bin {
-  fn into(self) -> Str {
-    std::string::String::from_utf8_lossy(self.as_ref()).into()
+impl From<Bin> for Str {
+  fn from(val: Bin) -> Self {
+    std::string::String::from_utf8_lossy(val.as_ref()).into()
   }
 }
 
