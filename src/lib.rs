@@ -47,6 +47,17 @@ pub struct Xedis {
 #[napi]
 impl Xedis {
   #[napi]
+  pub async fn xdel(&self, stream: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
+    Ok(
+      match id {
+        Either::A(id) => self.c.xdel(stream, id),
+        Either::B(id) => self.c.xdel(stream, id),
+      }
+      .await?,
+    )
+  }
+
+  #[napi]
   pub async fn xack(&self, stream: Bin, group: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
     Ok(
       match id {

@@ -5,6 +5,7 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
+  xdel(stream: Bin, id: Array<Bin> | Bin): Promise<void>
   xack(stream: Bin, group: Bin, id: Array<Bin> | Bin): Promise<void>
   xaddLi(key: Bin, valLi: Array<Array<[Bin, Bin]>>): Promise<void>
   xadd(key: Bin, val: Array<[Bin, Bin]>): Promise<void>

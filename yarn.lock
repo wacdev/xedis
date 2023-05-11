@@ -303,13 +303,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@w5/redis_lua@npm:^0.0.7":
-  version: 0.0.7
-  resolution: "@w5/redis_lua@npm:0.0.7"
+"@w5/redis_lua@npm:^0.0.8":
+  version: 0.0.8
+  resolution: "@w5/redis_lua@npm:0.0.8"
   dependencies:
+    "@w5/dot": ^0.0.2
     "@w5/u8": ^0.0.1
     "@w5/utf8": ^0.0.3
-  checksum: 496ef25bcf5c860ac7df704d66c53845a21e23b7daa00a8d8e28842bcb5097a804ac921e8581b908c35f2dd4e398ca5aa283605f326e5bb8c04db75324a01342
+  checksum: fc04c1d566a796f1e418af3baba2f2b6f879535a282a49fc339ff142bc7892496eb4b43fd632f5f8fa75c79b1184cc2ea1aeb7b8aaa2f33e9fc64bd324f4e61b
   languageName: node
   linkType: hard
 
@@ -358,7 +359,7 @@ __metadata:
     "@w5/loader": ^0.0.3
     "@w5/mdt": ^0.0.16
     "@w5/read": ^0.0.1
-    "@w5/redis_lua": ^0.0.7
+    "@w5/redis_lua": ^0.0.8
     "@w5/uridir": ^0.0.1
     "@w5/utf8": ^0.0.3
     "@w5/write": ^0.0.1
