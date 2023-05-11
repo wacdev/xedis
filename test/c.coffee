@@ -16,7 +16,7 @@ for [task,li] from await R.xnext(
 )
   console.log utf8d task
   for [id, msg] from li
-    console.log utf8d id
+    console.log id
     for [k,v] from msg
       console.log utf8d(k),utf8d(v)
 

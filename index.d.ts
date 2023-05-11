@@ -6,7 +6,7 @@
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null): Promise<Xedis>
 export class Xedis {
   xadd(key: Bin, val: Array<[Bin, Bin]>): Promise<void>
-  xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Array<[Val, Array<[Val, Val]>]>]>>
+  xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Array<[string, Array<[Val, Val]>]>]>>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   del(key: Array<Bin> | Bin): Promise<number>
   exist(key: Array<Bin> | Bin): Promise<number>
