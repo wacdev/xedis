@@ -13,6 +13,8 @@ export class Xedis {
   exist(key: Array<Bin> | Bin): Promise<number>
   zrem(key: Bin, key: Array<Bin> | Bin): Promise<number>
   expire(key: Bin, ex: number): Promise<boolean>
+  fcall(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
+  fcallR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
   get(key: Bin): Promise<OptionString>
   getB(key: Bin): Promise<Val>
   hdel(map: Bin, key: Bin): Promise<number>
@@ -26,8 +28,6 @@ export class Xedis {
   sadd(set: Bin, val: Bin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
   zscore(zset: Bin, key: Bin): Promise<number | null>
-  fcall(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
-  fcallR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<void>
   fbool(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
   fboolR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
   fbin(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<Val | null>

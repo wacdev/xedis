@@ -3,5 +3,6 @@ local log = function(...)
 end
 
 function xpendclaim(keys, args)
-  log(keys, args)
+  log("xxx", #keys, keys[1])
+  return 1
 end
