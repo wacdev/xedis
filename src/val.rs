@@ -15,8 +15,8 @@ impl Debug for Val {
   fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
     fmt.write_str("Val:")?;
     fmt.write_str(match &self.0 {
-      Some(val) => msg = std::string::String::from_utf8_lossy(val),
-      None => msg = "None".into(),
+      Some(val) => std::string::String::from_utf8_lossy(val),
+      None => "None".into(),
     });
   }
 }
