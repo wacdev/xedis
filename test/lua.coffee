@@ -4,16 +4,17 @@
   ./R
   @w5/read
   @w5/uridir
+  @w5/dot
   path > join
   os > hostname
   msgpackr > unpack
 
 
-await RedisLua(redis).xpendclaim(
-  read uridir(import.meta),'xpendclaim.lua'
+await RedisLua(R).xpendclaim(
+  read join uridir(import.meta),'xpendclaim.lua'
 )
 
-main = (redis, stream, idle, limit, customer = hostname(), group='C') = =>
+main = dot (stream)=> (redis, idle, limit, customer = hostname(), group='C') =>
   [
     => # xpendclaim
       r = await redis.fbin(
@@ -26,9 +27,9 @@ main = (redis, stream, idle, limit, customer = hostname(), group='C') = =>
         [
           idle    # idle
           limit   # limit
-        ]
+        ].map((i)=>''+i)
       )
-      if r.length
+      if r
         return unpack r
       []
   ]
@@ -36,10 +37,10 @@ main = (redis, stream, idle, limit, customer = hostname(), group='C') = =>
 
 [
   xpendclaim
-] = main(
-  redis
-  'task'
-  6e5 # idle
+] = main.task(
+  R
+  1e3 # 6e5 # idle
+  30 #
 )
 
 console.log await xpendclaim()

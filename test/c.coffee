@@ -5,7 +5,7 @@
   @w5/utf8/utf8d
 
 stream = 'task'
-group = 'R'
+group = 'C'
 customer = hostname()
 
 n = 0
