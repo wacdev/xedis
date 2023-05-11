@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "types": "index.d.ts",
   "exports": {
