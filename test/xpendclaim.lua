@@ -15,6 +15,9 @@ local xclaim = function(stream, group, customer, min_idle, ...)
 end
 
 function xpendclaim(keys, args)
+  if #keys ~= 3 then
+    return
+  end
   local stream, group, customer = unpack(keys)
   local idle, limit = unpack(args)
   idle = tonumber(idle)
@@ -34,8 +37,8 @@ function xpendclaim(keys, args)
       table.insert(msg, 1, id)
       table.insert(r, msg)
     end
-    return cjson.encode(r)
+    return cmsgpack.pack(r)
   else
-    return "[]"
+    return
   end
 end
