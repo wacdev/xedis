@@ -4,6 +4,7 @@ env:
   APP_NAME: xedis
   MACOSX_DEPLOYMENT_TARGET: '13.3'
 'on':
+  workflow_dispatch:
   push:
     branches:
       - main
