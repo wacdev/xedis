@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "types": "index.d.ts",
   "exports": {
@@ -48,6 +48,9 @@
   "ava": {
     "require": [
       "esm"
+    ],
+    "files": [
+      "test/*.mjs"
     ],
     "timeout": "3m"
   },
