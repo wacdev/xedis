@@ -5,13 +5,14 @@
   @w5/utf8/utf8d
 
 stream = 'task'
-HOSTNAME = hostname()
+group = 'R'
+customer = hostname()
 
 n = 0
 while n++ < 100
   for [task,li] from await R.xnext(
-    'R'
-    HOSTNAME
+    group
+    customer
     10 # limit
     6e5 # block
     false # noack
