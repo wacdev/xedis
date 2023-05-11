@@ -17,7 +17,7 @@ features = ["replicas", "rustls"]
 
 #version = "6.2.1"
 [dependencies.napi]
-path = "../napi-rs/crates/napi"
+path = "./lib/napi-rs/crates/napi"
 default-features = false
 features = ["napi8", "error_anyhow", "tokio_rt", "async"]
 

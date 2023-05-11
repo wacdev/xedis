@@ -1,3 +1,6 @@
 [submodule "lib/fred.rs"]
 	path = lib/fred.rs
 	url = git@github.com:wacfork/fred.rs.git
+[submodule "lib/napi-rs"]
+	path = lib/napi-rs
+	url = git@github.com:wacdev/napi-rs.git
