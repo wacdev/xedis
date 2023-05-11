@@ -1,6 +1,7 @@
 #!/usr/bin/env coffee
 
 > @w5/redis_lua
+  @w5/redis_lua/dot_bind
   ./R
   @w5/read
   @w5/uridir
@@ -9,10 +10,12 @@
   os > hostname
   msgpackr > unpack
 
-
 await RedisLua(R).xpendclaim(
   read join uridir(import.meta),'xpendclaim.lua'
 )
+
+B = DotBind R
+B.fbin.xpendclaim
 
 main = dot (stream)=>
   (
@@ -24,17 +27,13 @@ main = dot (stream)=>
   ) =>
     [
       => # xpendclaim
-        r = await redis.fbin(
-          'xpendclaim'
-          [
-            stream # stream
-            group # group
-            customer
-          ]
-          [
-            idle    # idle
-            limit   # limit
-          ].map((i)=>''+i)
+        r = await redis.xpendclaim(
+          stream # stream
+          group # group
+          customer
+        )(
+          idle    # idle
+          limit   # limit
         )
         if r
           r = unpack r
