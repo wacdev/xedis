@@ -6,10 +6,13 @@
 stream = 'task'
 HOSTNAME = hostname()
 
+rstr = =>
+  Math.floor Math.random() * 100000
+
 await R.xadd(
   stream
   [
-    ['-',JSON.stringify(['good','yes'])]
+    ['-',JSON.stringify({'<':rstr()})]
   ]
 )
 
@@ -17,10 +20,10 @@ await R.xaddLi(
   stream
   [
     [
-      ['-',JSON.stringify(['1'])]
+      ['-',JSON.stringify('A'+rstr())]
     ]
     [
-      ['-',JSON.stringify(['2'])]
+      ['-',JSON.stringify('B'+rstr())]
     ]
   ]
 )
