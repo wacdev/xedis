@@ -14,10 +14,11 @@ pub struct Val(Option<Uint8Array>);
 impl Debug for Val {
   fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
     fmt.write_str("Val:")?;
-    fmt.write_str(match &self.0 {
-      Some(val) => std::string::String::from_utf8_lossy(val).into(),
+    let msg = match &self.0 {
+      Some(val) => std::string::String::from_utf8_lossy(val),
       None => "None".into(),
-    });
+    };
+    fmt.write_str(&msg)
   }
 }
 
