@@ -16,6 +16,7 @@ await RedisLua(R).xpendclaim(
 
 B = DotBind R
 B.fbin.xpendclaim
+B.fcall.xconsumerclean
 
 main = dot (stream)=>
   (
@@ -46,17 +47,25 @@ main = dot (stream)=>
 
 stream = 'testTask'
 group = 'C'
-[
-  xpendclaim
-] = main[stream](
-  R
-  1e3 # 6e5 # idle
-  3 #
+
+console.log await R.xconsumerclean(
+  stream
   group
+)(
+  10
+  # 864e3
 )
-
-for [id,retry,...args] from await xpendclaim()
-  console.log id,retry,args
-  await R.xack stream, group, id
-
-
+# [
+#   xpendclaim
+# ] = main[stream](
+#   R
+#   1e3 # 6e5 # idle
+#   3 #
+#   group
+# )
+#
+# for [id,retry,...args] from await xpendclaim()
+#   console.log id,retry,args
+#   await R.xack stream, group, id
+#
+#

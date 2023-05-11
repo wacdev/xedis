@@ -10,8 +10,27 @@ local XPENDING = function(stream, group, idle, limit)
   return redis.call("XPENDING", stream, group, "IDLE", idle, "-", "+", limit)
 end
 
-local xclaim = function(stream, group, customer, min_idle, ...)
+local XCLAIM = function(stream, group, customer, min_idle, ...)
   return redis.call("XCLAIM", stream, group, customer, min_idle, ...)
+end
+
+local XINFO = function(stream, group)
+  return redis.call("XINFO", "CONSUMERS", stream, group)
+end
+
+local XDELCONSUMER = function(stream, group, consumer)
+  return redis.call("XGROUP", "DELCONSUMER", stream, group, consumer)
+end
+
+function xconsumerclean(keys, args)
+  local stream, group = unpack(keys)
+  local expire = 1000 * tonumber(args[1])
+  for _, v in ipairs(XINFO(stream, group)) do
+    local v = v.map
+    if v.idle > expire then
+      XDELCONSUMER(stream, group, v.name)
+    end
+  end
 end
 
 function xpendclaim(keys, args)
@@ -31,7 +50,7 @@ function xpendclaim(keys, args)
       id_retry[id] = v[4]
     end
     local r = {}
-    for _, v in ipairs(xclaim(stream, group, customer, idle, unpack(id_li))) do
+    for _, v in ipairs(XCLAIM(stream, group, customer, idle, unpack(id_li))) do
       local id, msg = unpack(v)
 
       for i, v in ipairs(msg) do
