@@ -47,6 +47,23 @@ pub struct Xedis {
 #[napi]
 impl Xedis {
   #[napi]
+  pub async fn xack(&self, stream: Bin, group: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
+    Ok(
+      match id {
+        Either::A(id) => self.c.xack(
+          stream,
+          group,
+          id.into_iter()
+            .map(|i| XID::Manual(i.into()))
+            .collect::<Vec<_>>(),
+        ),
+        Either::B(id) => self.c.xack(stream, group, XID::Manual(id.into())),
+      }
+      .await?,
+    )
+  }
+
+  #[napi]
   pub async fn xadd_li(&self, key: Bin, val_li: Vec<Vec<(Bin, Bin)>>) -> Result<()> {
     let p = self.c.pipeline();
     let key = key.as_ref();
