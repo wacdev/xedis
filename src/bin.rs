@@ -10,9 +10,9 @@ use napi::{
 pub type StringUint8Array = Either3<f64, String, Buffer>;
 pub struct Bin(pub StringUint8Array);
 
-impl Into<Box<[u8]>> for Bin {
-  fn into(self) -> Box<[u8]> {
-    match &self.0 {
+impl From<Bin> for Box<[u8]> {
+  fn from(val: Bin) -> Self {
+    match &val.0 {
       Either3::A(x) => {
         if x.fract() == 0.0 {
           (*x as i64).to_string().as_bytes().into()
