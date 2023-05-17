@@ -16,7 +16,7 @@ impl FromNapiValue for Map {
     let obj = Object::from_napi_value(env, napi_val)?;
     for i in Object::keys(&obj)?.into_iter() {
       let val: Bin = obj.get(&i)?.unwrap();
-      r.insert(i, val.as_ref().into());
+      r.insert(i, val.into());
     }
     Ok(Self(r))
   }

@@ -3,22 +3,32 @@ use fred::{
   types::{RedisKey, RedisValue},
 };
 use napi::{
-  bindgen_prelude::{Buffer, FromNapiValue, ToNapiValue, TypeName, ValidateNapiValue},
+  bindgen_prelude::{Buffer, Either3, FromNapiValue, ToNapiValue, TypeName, ValidateNapiValue},
   sys::{napi_env, napi_value},
-  Either, Result, ValueType,
+  Result, ValueType,
 };
-pub type StringUint8Array = Either<String, Buffer>;
+pub type StringUint8Array = Either3<f64, String, Buffer>;
 pub struct Bin(pub StringUint8Array);
 
-impl AsRef<[u8]> for Bin {
-  fn as_ref(&self) -> &[u8] {
-    self.0.as_ref()
+impl Into<Box<[u8]>> for Bin {
+  fn into(self) -> Box<[u8]> {
+    match &self.0 {
+      Either3::A(x) => {
+        if x.fract() == 0.0 {
+          (*x as i64).to_string().as_bytes().into()
+        } else {
+          x.to_string().as_bytes().into()
+        }
+      }
+      Either3::B(x) => x.as_bytes().into(),
+      Either3::C(x) => x.as_ref().into(),
+    }
   }
 }
 
 impl From<Bin> for Str {
   fn from(val: Bin) -> Self {
-    std::string::String::from_utf8_lossy(val.as_ref()).into()
+    std::string::String::from_utf8_lossy(&Into::<Box<[u8]>>::into(val)).into()
   }
 }
 
@@ -26,7 +36,8 @@ impl From<Bin> for Str {
 
 impl ToNapiValue for Bin {
   unsafe fn to_napi_value(env: napi_env, bin: Self) -> napi::Result<napi_value> {
-    Buffer::to_napi_value(env, bin.as_ref().into())
+    let bin = &Into::<Box<[u8]>>::into(bin)[..];
+    Buffer::to_napi_value(env, bin.into())
   }
 }
 
@@ -38,13 +49,13 @@ impl FromNapiValue for Bin {
 
 impl From<Bin> for RedisValue {
   fn from(t: Bin) -> RedisValue {
-    RedisValue::from(t.as_ref())
+    RedisValue::from(Into::<Box<[u8]>>::into(t))
   }
 }
 
 impl From<Bin> for RedisKey {
   fn from(t: Bin) -> RedisKey {
-    RedisKey::from(t.as_ref())
+    RedisKey::from(Into::<Box<[u8]>>::into(t))
   }
 }
 

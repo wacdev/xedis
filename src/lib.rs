@@ -77,7 +77,7 @@ impl Xedis {
   #[napi]
   pub async fn xadd_li(&self, key: Bin, val_li: Vec<Vec<(Bin, Bin)>>) -> Result<()> {
     let p = self.c.pipeline();
-    let key = key.as_ref();
+    let key = &Into::<Box<[u8]>>::into(key)[..];
     for val in val_li.into_iter() {
       p.xadd(
         key,
@@ -117,8 +117,10 @@ impl Xedis {
     noack: bool,
     key: Bin,
   ) -> Result<Vec<(Val, Vec<(String, Vec<(Val, Val)>)>)>> {
-    let key = key.as_ref();
+    let key = &Into::<Box<[u8]>>::into(key)[..];
+    let consumer = Into::<Box<[u8]>>::into(consumer);
     let consumer = from_utf8(consumer.as_ref())?;
+    let group = Into::<Box<[u8]>>::into(group);
     let group = from_utf8(group.as_ref())?;
     match self
       .c
@@ -146,7 +148,7 @@ impl Xedis {
 
   #[napi]
   pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
-    let map = map.as_ref();
+    let map = &Into::<Box<[u8]>>::into(map)[..];
     Ok(
       self
         .c
@@ -332,22 +334,22 @@ macro_rules! def {
 }
 
 def! {
-expire key:Bin ex:i64 => bool : expire
-fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall
-fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro
-get key:Bin => OptionString : get
-get_b key:Bin => Val : get
-hdel map:Bin key:Bin => u32 : hdel
-hexist map:Bin key:Bin => bool : hexists
-hget map:Bin key:Bin => OptionString : hget
-hget_b map:Bin key:Bin => Val : hget
-hincrby map:Bin key:Bin val:i64 => i64 : hincrby
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
-quit => () : quit
-sadd set:Bin val:Bin => i64 : sadd
-smembers set:Bin => Vec<Val> : smembers
-zscore zset:Bin key:Bin => Option<f64> : zscore
+    expire key:Bin ex:i64 => bool : expire
+        fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall
+                                                         fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro
+                                                                                                            get key:Bin => OptionString : get
+                                                                                                            get_b key:Bin => Val : get
+                                                                                                            hdel map:Bin key:Bin => u32 : hdel
+                                                                                                            hexist map:Bin key:Bin => bool : hexists
+                                                                                                            hget map:Bin key:Bin => OptionString : hget
+                                                                                                            hget_b map:Bin key:Bin => Val : hget
+                                                                                                            hincrby map:Bin key:Bin val:i64 => i64 : hincrby
+                                                                                                            hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
+                                                                                                            hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
+                                                                                                            quit => () : quit
+                                                                                                                         sadd set:Bin val:Bin => i64 : sadd
+                                                                                                                         smembers set:Bin => Vec<Val> : smembers
+                                                                                                                         zscore zset:Bin key:Bin => Option<f64> : zscore
 }
 
 macro_rules! fcall {
