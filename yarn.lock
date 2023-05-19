@@ -368,7 +368,7 @@ __metadata:
     coffeescript: ^2.7.0
     concurrently: ^8.0.1
     esm: ^3.2.25
-    msgpackr: ^1.9.1
+    msgpackr: ^1.9.2
     zx: ^7.2.2
   languageName: unknown
   linkType: soft
@@ -2036,15 +2036,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msgpackr@npm:^1.9.1":
-  version: 1.9.1
-  resolution: "msgpackr@npm:1.9.1"
+"msgpackr@npm:^1.9.2":
+  version: 1.9.2
+  resolution: "msgpackr@npm:1.9.2"
   dependencies:
     msgpackr-extract: ^3.0.2
   dependenciesMeta:
     msgpackr-extract:
       optional: true
-  checksum: 514993bfad40e123bbbe0238b7424f4f3945c69b1414b37d126e731a9c2709eb96d3475cdec874836462f53e67f82f615d3dbb5b4860af854969fb9502e9820f
+  checksum: e4538271e2fcba5622c24486cca64fadae92c5c698fff6956c6869d405ec54b9264bd4db7d0e8875ae133732931272241624e69f595f633ee22dff71567bb981
   languageName: node
   linkType: hard
 

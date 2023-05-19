@@ -41,7 +41,7 @@
     "coffeescript": "^2.7.0",
     "concurrently": "^8.0.1",
     "esm": "^3.2.25",
-    "msgpackr": "^1.9.1",
+    "msgpackr": "^1.9.2",
     "zx": "^7.2.2"
   },
   "ava": {
