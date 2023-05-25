@@ -266,17 +266,19 @@ pub async fn conn(
   database: Option<u8>,
   version: Option<u8>,
 ) -> Result<Xedis> {
-  let mut conf = RedisConfig {
-    version: match version {
-      Some(v) => {
-        if v == 2 {
-          fred::types::RespVersion::RESP2
-        } else {
-          fred::types::RespVersion::RESP3
-        }
+  let version = match version {
+    Some(v) => {
+      if v == 2 {
+        fred::types::RespVersion::RESP2
+      } else {
+        fred::types::RespVersion::RESP3
       }
-      None => fred::types::RespVersion::RESP3,
-    }..Default::default(),
+    }
+    None => fred::types::RespVersion::RESP3,
+  };
+  let mut conf = RedisConfig {
+    version,
+    ..Default::default()
   };
   conf.server = server.c.clone();
   conf.username = username;
@@ -293,27 +295,27 @@ pub async fn conn(
 }
 
 macro_rules! def_one_or_li {
-        (
+    (
+        $(
+            $name:ident $($arg:ident:$arg_ty:ty)* : $func:ident
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
             $(
-                $name:ident $($arg:ident:$arg_ty:ty)* : $func:ident
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty,)* key: Either<Vec<Bin>,Bin>) -> Result<u32> {
+                    Ok(
+                        match key{
+                            Either::A(key)=>self.c.$func($($arg,)* key),
+                            Either::B(key)=>self.c.$func($($arg,)* key)
+                        }.await?
+                    )
+                }
             )*
-        ) => {
-            #[napi]
-            impl Xedis {
-                $(
-                    #[napi]
-                    pub async fn $name(&self, $($arg:$arg_ty,)* key: Either<Vec<Bin>,Bin>) -> Result<u32> {
-                        Ok(
-                            match key{
-                                Either::A(key)=>self.c.$func($($arg,)* key),
-                                Either::B(key)=>self.c.$func($($arg,)* key)
-                            }.await?
-                        )
-                    }
-                )*
-            }
-        };
-    }
+        }
+    };
+}
 
 def_one_or_li!(
     del : del
@@ -322,25 +324,25 @@ def_one_or_li!(
 );
 
 macro_rules! def {
-        (
+    (
+        $(
+            $name:ident
+            $($arg:ident:$arg_ty:ty)*
+            =>
+            $rt:ty : $func:ident
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
             $(
-                $name:ident
-                $($arg:ident:$arg_ty:ty)*
-                =>
-                $rt:ty : $func:ident
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
+                    Ok(self.c.$func($($arg),*).await?)
+                }
             )*
-        ) => {
-            #[napi]
-            impl Xedis {
-                $(
-                    #[napi]
-                    pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
-                        Ok(self.c.$func($($arg),*).await?)
-                    }
-                )*
-            }
-        };
-    }
+        }
+    };
+}
 
 def! {
     expire key:Bin ex:i64 => bool : expire
@@ -362,24 +364,24 @@ def! {
 }
 
 macro_rules! fcall {
-        ($($name:ident $name_r:ident $rt:ty;)*)=>{
-            def!{
+    ($($name:ident $name_r:ident $rt:ty;)*)=>{
+        def!{
+            $(
+                $name name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall
+                $name_r name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall_ro
+            )*
+        }
+    };
+    ($($name:ident $rt:ty;)*)=>{
+        paste!{
+            fcall!(
                 $(
-                    $name name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall
-                    $name_r name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall_ro
+                    $name [<$name _r>] $rt;
                 )*
-            }
-        };
-        ($($name:ident $rt:ty;)*)=>{
-            paste!{
-                fcall!(
-                    $(
-                        $name [<$name _r>] $rt;
-                    )*
-                );
-            }
+            );
         }
     }
+}
 
 fcall!(
     fbool bool;
@@ -389,104 +391,104 @@ fcall!(
 );
 
 macro_rules! def_with_args {
-        (
+    (
+        $(
+            $name:ident
+            $($arg:ident:$arg_ty:ty)*
+            =>
+            $rt:ty {
+                $($more:tt)*
+            }
+        )*
+    ) => {
+        #[napi]
+        impl Xedis {
             $(
-                $name:ident
-                $($arg:ident:$arg_ty:ty)*
-                =>
-                $rt:ty {
-                    $($more:tt)*
+                #[napi]
+                pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
+                    Ok(self.c.$($more)*.await?)
                 }
             )*
-        ) => {
-            #[napi]
-            impl Xedis {
-                $(
-                    #[napi]
-                    pub async fn $name(&self, $($arg:$arg_ty),*) -> Result<$rt> {
-                        Ok(self.c.$($more)*.await?)
-                    }
-                )*
-            }
-        };
-    }
+        }
+    };
+}
 
 def_with_args!(
 
-setex key:Bin val:Bin ex:i64 => () {
-    set(key, val, Some(Expiration::EX(ex)), None, false)
-}
+    setex key:Bin val:Bin ex:i64 => () {
+        set(key, val, Some(Expiration::EX(ex)), None, false)
+    }
 
-fnload code:Bin => String {
-    function_load(true, code)
-}
+    fnload code:Bin => String {
+        function_load(true, code)
+    }
 
-hincr map:Bin key:Bin => i64 {
-    hincrby(map, key, 1)
-}
+    hincr map:Bin key:Bin => i64 {
+        hincrby(map, key, 1)
+    }
 
-zincrby zset:Bin key:Bin score: f64 => f64 {
-    zincrby(zset,score,key)
-}
+    zincrby zset:Bin key:Bin score: f64 => f64 {
+        zincrby(zset,score,key)
+    }
 
-zincr zset:Bin key:Bin=> f64 {
-    zincrby(zset,1.0,key)
-}
+    zincr zset:Bin key:Bin=> f64 {
+        zincrby(zset,1.0,key)
+    }
 
 set key:Bin val:Bin => () {
     // https://docs.rs/fred/6.2.1/fred/interfaces/trait.KeysInterface.html#method.set
     set(key,val,None,None,false)
-}
+    }
 
 );
 
 macro_rules! zadd {
-            ($($name:ident $set_opt:expr)*) => {
+    ($($name:ident $set_opt:expr)*) => {
+        #[napi]
+        impl Xedis {
+            $(
                 #[napi]
-                impl Xedis {
-                    $(
-                        #[napi]
-                        pub async fn $name(
-                            &self,
-                            zset: Bin,
-                            key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
-                            score: Option<f64>,
-                        ) -> Result<u32> {
-                            Ok(
-                                if let Some(score) = score {
-                                    // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
-                                    match key {
-                                        Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
-                                        _ => unreachable!(),
-                                    }
-                                } else {
-                                    match key {
-                                        Either3::A(key) => self.c.zadd(
-                                            zset,
-                                            $set_opt,
-                                            None,
-                                            false,
-                                            false,
-                                            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-                                        ),
-                                        Either3::B(key) => self.c.zadd(
-                                            zset,
-                                            $set_opt,
-                                            None,
-                                            false,
-                                            false,
-                                            key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-                                        ),
-                                        Either3::C(key) => self.c.zrem(zset, key),
-                                    }
-                                }
-                            .await?,
-                            )
+                pub async fn $name(
+                    &self,
+                    zset: Bin,
+                    key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
+                    score: Option<f64>,
+                ) -> Result<u32> {
+                    Ok(
+                        if let Some(score) = score {
+                            // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+                            match key {
+                                Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
+                                _ => unreachable!(),
+                            }
+                        } else {
+                            match key {
+                                Either3::A(key) => self.c.zadd(
+                                    zset,
+                                    $set_opt,
+                                    None,
+                                    false,
+                                    false,
+                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                                ),
+                                Either3::B(key) => self.c.zadd(
+                                    zset,
+                                    $set_opt,
+                                    None,
+                                    false,
+                                    false,
+                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                                ),
+                                Either3::C(key) => self.c.zrem(zset, key),
+                            }
                         }
-                    )*
+                    .await?,
+                    )
                 }
-            };
+            )*
         }
+    };
+}
 
 zadd!(
 
