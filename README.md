@@ -204,6 +204,10 @@ ava(
     t.is -3, await C.hincr map, key
 
     await C.del(map)
+    await C.hmset(map, [[1,2],[3,4]])
+    t.is (await C.hget(map,1)),'2'
+    t.is (await C.hget(map,3)),'4'
+    await C.del(map)
     t.is null,await C.hget(map, key)
 
     return
