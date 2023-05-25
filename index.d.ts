@@ -10,6 +10,7 @@ export class Xedis {
   xaddLi(key: Bin, valLi: Array<Array<[Bin, Bin]>>): Promise<void>
   xadd(key: Bin, val: Array<[Bin, Bin]>): Promise<void>
   xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Array<[string, Array<[Val, Val]>]>]>>
+  hmset(map: Bin, kvli: Array<[Bin, Bin]>): Promise<void>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   del(key: Array<Bin> | Bin): Promise<number>
   exist(key: Array<Bin> | Bin): Promise<number>

@@ -121,6 +121,10 @@ ava('hset', async(t) => {
   t.is(-4, (await C.hincrby(map, key, -10)));
   t.is(-3, (await C.hincr(map, key)));
   await C.del(map);
+  await C.hmset(map, [[1, 2], [3, 4]]);
+  t.is((await C.hget(map, 1)), '2');
+  t.is((await C.hget(map, 3)), '4');
+  await C.del(map);
   t.is(null, (await C.hget(map, key)));
 });
 
