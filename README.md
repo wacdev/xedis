@@ -7,7 +7,7 @@
 ## Install
 
 ```
-pnpm i -g @w5/xedis
+pnpm i @w5/xedis
 ```
 
 ## Test
