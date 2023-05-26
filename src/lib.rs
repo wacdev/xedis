@@ -47,20 +47,9 @@ pub struct Xedis {
 #[napi]
 impl Xedis {
   #[napi]
-  pub async fn xdel(&self, stream: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
+  pub async fn xack(&self, stream: Bin, group: Bin, id: VecBinOrBin) -> Result<()> {
     Ok(
-      match id {
-        Either::A(id) => self.c.xdel(stream, id),
-        Either::B(id) => self.c.xdel(stream, id),
-      }
-      .await?,
-    )
-  }
-
-  #[napi]
-  pub async fn xack(&self, stream: Bin, group: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
-    Ok(
-      match id {
+      match id.0 {
         Either::A(id) => self.c.xack(
           stream,
           group,
@@ -334,7 +323,7 @@ macro_rules! def {
             $name:ident
             $($arg:ident:$arg_ty:ty)*
             =>
-            $rt:ty : $func:ident
+            $rt:ty : $func:ident;
         )*
     ) => {
         #[napi]
@@ -350,43 +339,44 @@ macro_rules! def {
 }
 
 def! {
-expire key:Bin ex:i64 => bool : expire
-fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall
-fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro
-get key:Bin => OptionString : get
-get_b key:Bin => Val : get
-hdel map:Bin key:Bin => u32 : hdel
-hexist map:Bin key:Bin => bool : hexists
-hget map:Bin key:Bin => OptionString : hget
-hget_b map:Bin key:Bin => Val : hget
-hincrby map:Bin key:Bin val:i64 => i64 : hincrby
-hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
-hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
-quit => () : quit
-sadd set:Bin val:VecBinOrBin => i64 : sadd
-smembers set:Bin => Vec<Val> : smembers
-smismember set:Bin li:Vec<Bin> => Vec<bool> : smismember
-zscore zset:Bin key:Bin => Option<f64> : zscore
+expire key:Bin ex:i64 => bool : expire;
+fcall name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall;
+fcall_r name:Bin key:Vec<Bin> val:Vec<Bin> => () : fcall_ro;
+get key:Bin => OptionString : get;
+get_b key:Bin => Val : get;
+hdel map:Bin key:Bin => u32 : hdel;
+hexist map:Bin key:Bin => bool : hexists;
+hget map:Bin key:Bin => OptionString : hget;
+hget_b map:Bin key:Bin => Val : hget;
+hincrby map:Bin key:Bin val:i64 => i64 : hincrby;
+hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget;
+hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget;
+quit => () : quit;
+sadd set:Bin val:VecBinOrBin => i64 : sadd;
+smembers set:Bin => Vec<Val> : smembers;
+smismember set:Bin li:Vec<Bin> => Vec<bool> : smismember;
+xdel stream:Bin id:VecBinOrBin => (): xdel;
+zscore zset:Bin key:Bin => Option<f64> : zscore;
 }
 
 macro_rules! fcall {
-    ($($name:ident $name_r:ident $rt:ty;)*)=>{
-        def!{
-            $(
-                $name name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall
-                $name_r name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall_ro
-            )*
-        }
-    };
-    ($($name:ident $rt:ty;)*)=>{
-        paste!{
-            fcall!(
-                $(
-                    $name [<$name _r>] $rt;
-                )*
-            );
-        }
-    }
+($($name:ident $name_r:ident $rt:ty;)*)=>{
+def!{
+$(
+  $name name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall;
+  $name_r name:Bin key:Vec<Bin> val:Vec<Bin> => Option<$rt> : fcall_ro;
+)*
+}
+};
+($($name:ident $rt:ty;)*)=>{
+paste!{
+fcall!(
+$(
+  $name [<$name _r>] $rt;
+)*
+);
+}
+}
 }
 
 fcall!(

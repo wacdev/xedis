@@ -1,7 +1,7 @@
 use fred::{
   bytes_utils::Str,
   prelude::RedisError,
-  types::{MultipleValues, RedisKey, RedisValue},
+  types::{MultipleKeys, MultipleStrings, MultipleValues, RedisKey, RedisValue},
 };
 use napi::{
   bindgen_prelude::{
@@ -100,5 +100,14 @@ impl TryFrom<VecBinOrBin> for MultipleValues {
       Either::A(t) => t.try_into()?,
       Either::B(t) => t.into(),
     })
+  }
+}
+
+impl From<VecBinOrBin> for MultipleStrings {
+  fn from(t: VecBinOrBin) -> MultipleKeys {
+    match t.0 {
+      Either::A(t) => t.into(),
+      Either::B(t) => t.into(),
+    }
   }
 }

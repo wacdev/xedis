@@ -5,8 +5,7 @@
 
 export function conn(server: Server, username: OptionString, password: OptionString, database?: number | undefined | null, version?: number | undefined | null): Promise<Xedis>
 export class Xedis {
-  xdel(stream: Bin, id: Array<Bin> | Bin): Promise<void>
-  xack(stream: Bin, group: Bin, id: Array<Bin> | Bin): Promise<void>
+  xack(stream: Bin, group: Bin, id: VecBinOrBin): Promise<void>
   xaddLi(key: Bin, valLi: Array<Array<[Bin, Bin]>>): Promise<void>
   xadd(key: Bin, val: Array<[Bin, Bin]>): Promise<void>
   xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Array<[string, Array<[Val, Val]>]>]>>
@@ -31,6 +30,7 @@ export class Xedis {
   sadd(set: Bin, val: VecBinOrBin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
   smismember(set: Bin, li: Array<Bin>): Promise<Array<boolean>>
+  xdel(stream: Bin, id: VecBinOrBin): Promise<void>
   zscore(zset: Bin, key: Bin): Promise<number | null>
   fbool(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
   fboolR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
