@@ -1,12 +1,15 @@
 use fred::{
   bytes_utils::Str,
-  types::{RedisKey, RedisValue},
+  types::{MultipleValues, RedisKey, RedisValue},
 };
 use napi::{
-  bindgen_prelude::{Buffer, Either3, FromNapiValue, ToNapiValue, TypeName, ValidateNapiValue},
+  bindgen_prelude::{
+    Buffer, Either, Either3, FromNapiValue, ToNapiValue, TypeName, ValidateNapiValue,
+  },
   sys::{napi_env, napi_value},
   Result, ValueType,
 };
+
 pub type StringUint8Array = Either3<f64, String, Buffer>;
 pub struct Bin(pub StringUint8Array);
 
@@ -75,5 +78,25 @@ impl TypeName for Bin {
 
   fn value_type() -> ValueType {
     ValueType::Object
+  }
+}
+
+pub type EitherVecBinOrBin = Either<Vec<Bin>, Bin>;
+pub struct VecBinOrBin(pub EitherVecBinOrBin);
+
+impl FromNapiValue for VecBinOrBin {
+  unsafe fn from_napi_value(env: napi_env, napi_val: napi_value) -> napi::Result<Self> {
+    Ok(VecBinOrBin(EitherVecBinOrBin::from_napi_value(
+      env, napi_val,
+    )?))
+  }
+}
+
+impl From<VecBinOrBin> for MultipleValues {
+  fn from(t: VecBinOrBin) -> MultipleValues {
+    match t.0 {
+      Either::A(t) => t.try_into().unwrap(),
+      Either::B(t) => t.into(),
+    }
   }
 }

@@ -22,7 +22,7 @@ pub mod bin;
 pub mod map;
 pub mod val;
 
-use bin::Bin;
+use bin::{Bin, VecBinOrBin};
 use map::Map;
 use val::Val;
 
@@ -363,7 +363,7 @@ hincrby map:Bin key:Bin val:i64 => i64 : hincrby
 hmget map:Bin li:Vec<Bin> => Vec<OptionString> : hmget
 hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
 quit => () : quit
-sadd set:Bin val:Bin => i64 : sadd
+sadd set:Bin val:VecBinOrBin => i64 : sadd
 smembers set:Bin => Vec<Val> : smembers
 smismember set:Bin li:Vec<Bin> => Vec<bool> : smismember
 zscore zset:Bin key:Bin => Option<f64> : zscore

@@ -28,7 +28,7 @@ export class Xedis {
   hmget(map: Bin, li: Array<Bin>): Promise<Array<OptionString>>
   hmgetB(map: Bin, li: Array<Bin>): Promise<Array<Val>>
   quit(): Promise<void>
-  sadd(set: Bin, val: Bin): Promise<number>
+  sadd(set: Bin, val: VecBinOrBin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
   smismember(set: Bin, li: Array<Bin>): Promise<Array<boolean>>
   zscore(zset: Bin, key: Bin): Promise<number | null>
