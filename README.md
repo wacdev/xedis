@@ -186,7 +186,7 @@ ava(
 
     val2 = '2'
     val3 = 3
-    await C.sadd set, [val2, val3]
+    await C.sadd set, [val2, val3, Buffer.from([33,44])]
 
     t.deepEqual(
       await C.smismember(set, ['not exist', val, val2, 'not exist 2', 3])
@@ -248,7 +248,3 @@ ava(
     return
 )
 ```
-
-output :
-
-+ bunx ava
