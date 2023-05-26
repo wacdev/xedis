@@ -2,6 +2,8 @@
 
 # @w5/xedis
 
+[xedis](https://github.com/wactax/xedis) : a nodejs redis client base on [fred.rs](https://github.com/aembke/fred.rs) and [napi-rs](https://github.com/napi-rs/napi-rs)
+
 ## Install
 
 ```
