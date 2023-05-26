@@ -1,5 +1,6 @@
 use fred::{
   bytes_utils::Str,
+  prelude::RedisError,
   types::{MultipleValues, RedisKey, RedisValue},
 };
 use napi::{
@@ -92,11 +93,12 @@ impl FromNapiValue for VecBinOrBin {
   }
 }
 
-impl From<VecBinOrBin> for MultipleValues {
-  fn from(t: VecBinOrBin) -> MultipleValues {
-    match t.0 {
-      Either::A(t) => t.try_into().unwrap(),
+impl TryFrom<VecBinOrBin> for MultipleValues {
+  type Error = RedisError;
+  fn try_from(t: VecBinOrBin) -> std::result::Result<MultipleValues, RedisError> {
+    Ok(match t.0 {
+      Either::A(t) => t.try_into()?,
       Either::B(t) => t.into(),
-    }
+    })
   }
 }
