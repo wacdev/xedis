@@ -442,46 +442,46 @@ macro_rules! zadd {
     ($($name:ident $set_opt:expr)*) => {
         #[napi]
         impl Xedis {
-            $(
-                #[napi]
-                pub async fn $name(
-                    &self,
-                    zset: Bin,
-                    key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
-                    score: Option<f64>,
-                ) -> Result<u32> {
-                    Ok(
-                        if let Some(score) = score {
-                            // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
-                            match key {
-                                Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
-                                _ => unreachable!(),
-                            }
-                        } else {
-                            match key {
-                                Either3::A(key) => self.c.zadd(
-                                    zset,
-                                    $set_opt,
-                                    None,
-                                    false,
-                                    false,
-                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-                                ),
-                                Either3::B(key) => self.c.zadd(
-                                    zset,
-                                    $set_opt,
-                                    None,
-                                    false,
-                                    false,
-                                    key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
-                                ),
-                                Either3::C(key) => self.c.zrem(zset, key),
-                            }
-                        }
-                    .await?,
-                    )
+$(
+    #[napi]
+    pub async fn $name(
+        &self,
+        zset: Bin,
+        key: Either3<HashMap<String, f64>, Vec<(Bin, f64)>, Bin>,
+        score: Option<f64>,
+    ) -> Result<u32> {
+        Ok(
+            if let Some(score) = score {
+                // https://docs.rs/fred/6.2.1/fred/interfaces/trait.SortedSetsInterface.html#method.zadd
+                match key {
+                    Either3::C(key) => self.c.zadd(zset, $set_opt, None, false, false, (score, key)),
+                    _ => unreachable!(),
                 }
-            )*
+            } else {
+                match key {
+                    Either3::A(key) => self.c.zadd(
+                        zset,
+                        $set_opt,
+                        None,
+                        false,
+                        false,
+                        key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                    ),
+                    Either3::B(key) => self.c.zadd(
+                        zset,
+                        $set_opt,
+                        None,
+                        false,
+                        false,
+                        key.into_iter().map(|(k, s)| (s, k)).collect::<Vec<_>>(),
+                    ),
+                    Either3::C(key) => self.c.zrem(zset, key),
+                }
+            }
+        .await?,
+        )
+    }
+)*
         }
     };
 }

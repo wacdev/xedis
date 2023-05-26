@@ -31,6 +31,9 @@ impl ToNapiValue for Val {
   }
 }
 impl FromRedis for Val {
+  fn from_owned_bytes(val: Vec<u8>) -> Option<Vec<Self>> {
+    Some(vec![Val(Some(val.into()))])
+  }
   fn from_value(val: RedisValue) -> Result<Self, RedisError> {
     Ok(match val.as_bytes() {
       None => Val(None),
