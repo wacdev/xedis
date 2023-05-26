@@ -109,13 +109,18 @@ ava('set', async(t) => {
 });
 
 ava('hset', async(t) => {
-  var key, map, val;
+  var key, key2, map, val, val2;
   map = KEY + 'hset';
   key = '键';
   val = '值';
+  key2 = 'key2';
+  val2 = 'val2';
   await C.del(map);
   await C.hset(map, key, val);
   t.is(val, (await C.hget(map, key)));
+  await C.hset(map, key2, val2);
+  t.deepEqual((await C.hmgetB(map, [key, key2])), [val, val2].map(utf8e));
+  t.deepEqual((await C.hmgetB(map, [key])), [val].map(utf8e));
   t.deepEqual(utf8e(val), (await C.hgetB(map, key)));
   await C.hdel(map, key);
   t.is(null, (await C.hget(map, key)));
