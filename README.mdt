@@ -15,7 +15,3 @@ pnpm i @w5/xedis
 ```coffee
 <+ ./coffee/main.coffee >
 ```
-
-output :
-
-<+ ./out.txt >
