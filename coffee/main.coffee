@@ -166,6 +166,14 @@ ava(
     val = 'val'
     t.is 1, await C.sadd set, val
     t.deepEqual [utf8e(val)], await C.smembers set
+
+    val2 = 'val2'
+    await C.sadd set, val2
+
+    t.deepEqual(
+      await C.smismember(set, ['not exist', val, val2, 'not exist 2'])
+      [false, true, true, false]
+    )
     await C.del set
     return
 )

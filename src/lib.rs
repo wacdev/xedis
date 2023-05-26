@@ -2,15 +2,14 @@ use std::str::from_utf8;
 
 use anyhow::Result;
 use fred::{
-    interfaces::{
-        ClientLike, FunctionInterface, HashesInterface, KeysInterface, SetsInterface,
-        SortedSetsInterface, StreamsInterface,
-    },
-    prelude::{
-        Expiration, ReconnectPolicy, RedisClient, RedisConfig, RedisErrorKind::Unknown,
-        ServerConfig,
-    },
-    types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind, XID},
+  interfaces::{
+    ClientLike, FunctionInterface, HashesInterface, KeysInterface, SetsInterface,
+    SortedSetsInterface, StreamsInterface,
+  },
+  prelude::{
+    Expiration, ReconnectPolicy, RedisClient, RedisConfig, RedisErrorKind::Unknown, ServerConfig,
+  },
+  types::{RedisMap, SetOptions, ZRange, ZRangeBound, ZRangeKind, XID},
 };
 use napi::bindgen_prelude::{Either, Either3};
 use paste::paste;
@@ -28,13 +27,13 @@ use map::Map;
 use val::Val;
 
 const MIN: ZRange = ZRange {
-    kind: ZRangeKind::Inclusive,
-    range: ZRangeBound::NegInfiniteScore,
+  kind: ZRangeKind::Inclusive,
+  range: ZRangeBound::NegInfiniteScore,
 };
 
 const MAX: ZRange = ZRange {
-    kind: ZRangeKind::Inclusive,
-    range: ZRangeBound::InfiniteScore,
+  kind: ZRangeKind::Inclusive,
+  range: ZRangeBound::InfiniteScore,
 };
 
 pub type StrOrN = Either<String, f64>;
@@ -42,251 +41,262 @@ pub type BinOrMap = Either<Bin, Map>;
 
 #[napi]
 pub struct Xedis {
-    c: RedisClient,
+  c: RedisClient,
 }
 
 #[napi]
 impl Xedis {
-    #[napi]
-    pub async fn xdel(&self, stream: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
-        Ok(match id {
-            Either::A(id) => self.c.xdel(stream, id),
-            Either::B(id) => self.c.xdel(stream, id),
-        }
-        .await?)
-    }
+  #[napi]
+  pub async fn xdel(&self, stream: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
+    Ok(
+      match id {
+        Either::A(id) => self.c.xdel(stream, id),
+        Either::B(id) => self.c.xdel(stream, id),
+      }
+      .await?,
+    )
+  }
 
-    #[napi]
-    pub async fn xack(&self, stream: Bin, group: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
-        Ok(match id {
-            Either::A(id) => self.c.xack(
-                stream,
-                group,
-                id.into_iter()
-                    .map(|i| XID::Manual(i.into()))
-                    .collect::<Vec<_>>(),
-            ),
-            Either::B(id) => self.c.xack(stream, group, XID::Manual(id.into())),
-        }
-        .await?)
-    }
+  #[napi]
+  pub async fn xack(&self, stream: Bin, group: Bin, id: Either<Vec<Bin>, Bin>) -> Result<()> {
+    Ok(
+      match id {
+        Either::A(id) => self.c.xack(
+          stream,
+          group,
+          id.into_iter()
+            .map(|i| XID::Manual(i.into()))
+            .collect::<Vec<_>>(),
+        ),
+        Either::B(id) => self.c.xack(stream, group, XID::Manual(id.into())),
+      }
+      .await?,
+    )
+  }
 
-    #[napi]
-    pub async fn xadd_li(&self, key: Bin, val_li: Vec<Vec<(Bin, Bin)>>) -> Result<()> {
-        let p = self.c.pipeline();
-        let key = &Into::<Box<[u8]>>::into(key)[..];
-        for val in val_li.into_iter() {
-            p.xadd(
-                key,
-                false,    // nomkstream
-                Some(()), // cap
-                XID::Auto,
-                val,
-            )
+  #[napi]
+  pub async fn xadd_li(&self, key: Bin, val_li: Vec<Vec<(Bin, Bin)>>) -> Result<()> {
+    let p = self.c.pipeline();
+    let key = &Into::<Box<[u8]>>::into(key)[..];
+    for val in val_li.into_iter() {
+      p.xadd(
+        key,
+        false,    // nomkstream
+        Some(()), // cap
+        XID::Auto,
+        val,
+      )
+      .await?;
+    }
+    Ok(p.all().await?)
+  }
+
+  #[napi]
+  pub async fn xadd(&self, key: Bin, val: Vec<(Bin, Bin)>) -> Result<()> {
+    Ok(
+      self
+        .c
+        .xadd(
+          key,
+          false,    // nomkstream
+          Some(()), // cap
+          XID::Auto,
+          val,
+        )
+        .await?,
+    )
+  }
+
+  #[napi]
+  pub async fn xnext(
+    &self,
+    group: Bin,
+    consumer: Bin,
+    count: Option<u64>,
+    block: Option<u64>,
+    noack: bool,
+    key: Bin,
+  ) -> Result<Vec<(Val, Vec<(String, Vec<(Val, Val)>)>)>> {
+    let key = &Into::<Box<[u8]>>::into(key)[..];
+    let consumer = Into::<Box<[u8]>>::into(consumer);
+    let consumer = from_utf8(consumer.as_ref())?;
+    let group = Into::<Box<[u8]>>::into(group);
+    let group = from_utf8(group.as_ref())?;
+    match self
+      .c
+      .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
+      .await
+    {
+      Ok(r) => Ok(r),
+      Err(err) => {
+        if err.kind() == &Unknown && err.details().starts_with("NOGROUP ") {
+          self
+            .c
+            .xgroup_create(key, group, XID::Manual("0".into()), true)
             .await?;
+          return Ok(
+            self
+              .c
+              .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
+              .await?,
+          );
         }
-        Ok(p.all().await?)
+        Err(err.into())
+      }
     }
+  }
 
-    #[napi]
-    pub async fn xadd(&self, key: Bin, val: Vec<(Bin, Bin)>) -> Result<()> {
-        Ok(self
-            .c
-            .xadd(
-                key,
-                false,    // nomkstream
-                Some(()), // cap
-                XID::Auto,
-                val,
-            )
-            .await?)
-    }
+  #[napi]
+  pub async fn hmset(&self, map: Bin, kvli: Vec<(Bin, Bin)>) -> Result<()> {
+    Ok(self.c.hset::<(), _, _>(map, kvli).await?)
+  }
 
-    #[napi]
-    pub async fn xnext(
-        &self,
-        group: Bin,
-        consumer: Bin,
-        count: Option<u64>,
-        block: Option<u64>,
-        noack: bool,
-        key: Bin,
-    ) -> Result<Vec<(Val, Vec<(String, Vec<(Val, Val)>)>)>> {
-        let key = &Into::<Box<[u8]>>::into(key)[..];
-        let consumer = Into::<Box<[u8]>>::into(consumer);
-        let consumer = from_utf8(consumer.as_ref())?;
-        let group = Into::<Box<[u8]>>::into(group);
-        let group = from_utf8(group.as_ref())?;
-        match self
-            .c
-            .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
-            .await
-        {
-            Ok(r) => Ok(r),
-            Err(err) => {
-                if err.kind() == &Unknown && err.details().starts_with("NOGROUP ") {
-                    self.c
-                        .xgroup_create(key, group, XID::Manual("0".into()), true)
-                        .await?;
-                    return Ok(self
-                        .c
-                        .xreadgroup(group, consumer, count, block, noack, key, XID::NewInGroup)
-                        .await?);
-                }
-                Err(err.into())
-            }
-        }
-    }
-
-    #[napi]
-    pub async fn hmset(&self, map: Bin, kvli: Vec<(Bin, Bin)>) -> Result<()> {
-        Ok(self.c.hset::<(), _, _>(map, kvli).await?)
-    }
-
-    #[napi]
-    pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
-        let map = &Into::<Box<[u8]>>::into(map)[..];
-        Ok(self
-            .c
-            .hset::<(), _, _>(
-                map,
-                match key {
-                    napi::Either::A(key) => match val {
-                        Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
-                        None => {
-                            self.c.hdel(map, key).await?;
-                            return Ok(());
-                        }
-                    },
-                    napi::Either::B(key) => key.0.try_into()?,
-                },
-            )
-            .await?)
-    }
+  #[napi]
+  pub async fn hset(&self, map: Bin, key: BinOrMap, val: Option<Bin>) -> Result<()> {
+    let map = &Into::<Box<[u8]>>::into(map)[..];
+    Ok(
+      self
+        .c
+        .hset::<(), _, _>(
+          map,
+          match key {
+            napi::Either::A(key) => match val {
+              Some(val) => TryInto::<RedisMap>::try_into(vec![(key, val)])?,
+              None => {
+                self.c.hdel(map, key).await?;
+                return Ok(());
+              }
+            },
+            napi::Either::B(key) => key.0.try_into()?,
+          },
+        )
+        .await?,
+    )
+  }
 }
 
 macro_rules! i64 {
-    ($opt:ident,$key:ident,$default:expr) => {
-        match $opt.get(stringify!($key)) {
-            None => $default,
-            Some(t) => match t {
-                Either::A(t) => t.parse()?,
-                Either::B(t) => (*t as i64),
-            },
-        }
-    };
+  ($opt:ident,$key:ident,$default:expr) => {
+    match $opt.get(stringify!($key)) {
+      None => $default,
+      Some(t) => match t {
+        Either::A(t) => t.parse()?,
+        Either::B(t) => (*t as i64),
+      },
+    }
+  };
 }
 
 macro_rules! zrange {
-    ($opt:ident,$kind:ident,$default:ident) => {
-        match $opt.get(stringify!($kind)) {
-            Some(v) => match v {
-                Either::A(v) => v.into(),
-                Either::B(v) => ZRange {
-                    kind: ZRangeKind::Inclusive,
-                    range: ZRangeBound::Score(*v),
-                },
-            },
-            None => $default,
-        }
-    };
+  ($opt:ident,$kind:ident,$default:ident) => {
+    match $opt.get(stringify!($kind)) {
+      Some(v) => match v {
+        Either::A(v) => v.into(),
+        Either::B(v) => ZRange {
+          kind: ZRangeKind::Inclusive,
+          range: ZRangeBound::Score(*v),
+        },
+      },
+      None => $default,
+    }
+  };
 }
 
 macro_rules! opt_mlo {
-    ($opt:ident) => {{
-        let min;
-        let max;
-        let limit_offset;
-        if let Some(opt) = $opt {
-            min = zrange!(opt, min, MIN);
-            max = zrange!(opt, max, MAX);
-            let limit = i64!(opt, limit, -1);
-            let offset = i64!(opt, offset, 0);
-            limit_offset = if limit == -1 && offset == 0 {
-                None
-            } else {
-                Some((offset, limit))
-            }
-        } else {
-            limit_offset = None;
-            min = MIN;
-            max = MAX;
-        }
-        (min, max, limit_offset)
-    }};
+  ($opt:ident) => {{
+    let min;
+    let max;
+    let limit_offset;
+    if let Some(opt) = $opt {
+      min = zrange!(opt, min, MIN);
+      max = zrange!(opt, max, MAX);
+      let limit = i64!(opt, limit, -1);
+      let offset = i64!(opt, offset, 0);
+      limit_offset = if limit == -1 && offset == 0 {
+        None
+      } else {
+        Some((offset, limit))
+      }
+    } else {
+      limit_offset = None;
+      min = MIN;
+      max = MAX;
+    }
+    (min, max, limit_offset)
+  }};
 }
 
 #[napi]
 pub struct Server {
-    c: ServerConfig,
+  c: ServerConfig,
 }
 
 #[napi]
 impl Server {
-    #[napi(factory)]
-    pub fn cluster(host_port_li: Vec<(String, u16)>) -> Self {
-        Self {
-            c: ServerConfig::Clustered {
-                hosts: host_port_li
-                    .into_iter()
-                    .map(|(host, port)| fred::types::Server {
-                        host: host.into(),
-                        port,
-                        tls_server_name: None,
-                    })
-                    .collect(),
-            },
-        }
+  #[napi(factory)]
+  pub fn cluster(host_port_li: Vec<(String, u16)>) -> Self {
+    Self {
+      c: ServerConfig::Clustered {
+        hosts: host_port_li
+          .into_iter()
+          .map(|(host, port)| fred::types::Server {
+            host: host.into(),
+            port,
+            tls_server_name: None,
+          })
+          .collect(),
+      },
     }
+  }
 
-    #[napi(factory)]
-    pub fn host_port(host: String, port: u16) -> Self {
-        Self {
-            c: ServerConfig::Centralized {
-                server: fred::types::Server {
-                    host: host.into(),
-                    port,
-                    tls_server_name: None,
-                },
-            },
-        }
+  #[napi(factory)]
+  pub fn host_port(host: String, port: u16) -> Self {
+    Self {
+      c: ServerConfig::Centralized {
+        server: fred::types::Server {
+          host: host.into(),
+          port,
+          tls_server_name: None,
+        },
+      },
     }
+  }
 }
 
 #[napi]
 pub async fn conn(
-    server: &Server,
-    username: OptionString,
-    password: OptionString,
-    database: Option<u8>,
-    version: Option<u8>,
+  server: &Server,
+  username: OptionString,
+  password: OptionString,
+  database: Option<u8>,
+  version: Option<u8>,
 ) -> Result<Xedis> {
-    let version = match version {
-        Some(v) => {
-            if v == 2 {
-                fred::types::RespVersion::RESP2
-            } else {
-                fred::types::RespVersion::RESP3
-            }
-        }
-        None => fred::types::RespVersion::RESP3,
-    };
-    let mut conf = RedisConfig {
-        version,
-        ..Default::default()
-    };
-    conf.server = server.c.clone();
-    conf.username = username;
-    conf.password = password;
-    conf.database = database;
-    /*
-    https://docs.rs/fred/6.2.1/fred/types/enum.ReconnectPolicy.html#method.new_constant
-    */
-    let policy = ReconnectPolicy::new_constant(6, 1);
-    let client = RedisClient::new(conf, None, Some(policy));
-    client.connect();
-    client.wait_for_connect().await?;
-    Ok(Xedis { c: client })
+  let version = match version {
+    Some(v) => {
+      if v == 2 {
+        fred::types::RespVersion::RESP2
+      } else {
+        fred::types::RespVersion::RESP3
+      }
+    }
+    None => fred::types::RespVersion::RESP3,
+  };
+  let mut conf = RedisConfig {
+    version,
+    ..Default::default()
+  };
+  conf.server = server.c.clone();
+  conf.username = username;
+  conf.password = password;
+  conf.database = database;
+  /*
+  https://docs.rs/fred/6.2.1/fred/types/enum.ReconnectPolicy.html#method.new_constant
+  */
+  let policy = ReconnectPolicy::new_constant(6, 1);
+  let client = RedisClient::new(conf, None, Some(policy));
+  client.connect();
+  client.wait_for_connect().await?;
+  Ok(Xedis { c: client })
 }
 
 macro_rules! def_one_or_li {
@@ -355,6 +365,7 @@ hmget_b map:Bin li:Vec<Bin> => Vec<Val> : hmget
 quit => () : quit
 sadd set:Bin val:Bin => i64 : sadd
 smembers set:Bin => Vec<Val> : smembers
+smismember set:Bin li:Vec<Bin> => Vec<bool> : smismember
 zscore zset:Bin key:Bin => Option<f64> : zscore
 }
 
@@ -498,22 +509,22 @@ zadd!(
 );
 
 macro_rules! zset_range {
-    ($name:ident $rt:ty : $func:ident $m1:ident $m2:ident $score:ident) => {
-        #[napi]
-        impl Xedis {
-            #[napi]
-            pub async fn $name(
-                &self,
-                zset: Bin,
-                opt: Option<HashMap<String, StrOrN>>,
-            ) -> Result<Vec<$rt>> {
-                let (min, max, limit_offset) = opt_mlo!(opt);
-                paste! {
-                    Ok(self.c.$func(zset, [<$m1>], [<$m2>], $score, limit_offset).await?)
-                }
-            }
+  ($name:ident $rt:ty : $func:ident $m1:ident $m2:ident $score:ident) => {
+    #[napi]
+    impl Xedis {
+      #[napi]
+      pub async fn $name(
+        &self,
+        zset: Bin,
+        opt: Option<HashMap<String, StrOrN>>,
+      ) -> Result<Vec<$rt>> {
+        let (min, max, limit_offset) = opt_mlo!(opt);
+        paste! {
+            Ok(self.c.$func(zset, [<$m1>], [<$m2>], $score, limit_offset).await?)
         }
-    };
+      }
+    }
+  };
 }
 
 zset_range!(zrangebyscore_withscore (Val, f64) : zrangebyscore min max true);

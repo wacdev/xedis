@@ -30,6 +30,7 @@ export class Xedis {
   quit(): Promise<void>
   sadd(set: Bin, val: Bin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
+  smismember(set: Bin, li: Array<Bin>): Promise<Array<boolean>>
   zscore(zset: Bin, key: Bin): Promise<number | null>
   fbool(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
   fboolR(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>
