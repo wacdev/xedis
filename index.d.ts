@@ -10,6 +10,7 @@ export class Xedis {
   xadd(key: Bin, val: Array<[Bin, Bin]>): Promise<void>
   xnext(group: Bin, consumer: Bin, count: bigint | undefined | null, block: bigint | undefined | null, noack: boolean, key: Bin): Promise<Array<[Val, Array<[string, Array<[Val, Val]>]>]>>
   hmset(map: Bin, kvli: Array<[Bin, Bin]>): Promise<void>
+  smismember(set: Bin, li: VecBinOrBin): Promise<Array<boolean> | boolean>
   hset(map: Bin, key: BinOrMap, val?: Bin | undefined | null): Promise<void>
   del(key: Array<Bin> | Bin): Promise<number>
   exist(key: Array<Bin> | Bin): Promise<number>
@@ -29,7 +30,6 @@ export class Xedis {
   quit(): Promise<void>
   sadd(set: Bin, val: VecBinOrBin): Promise<number>
   smembers(set: Bin): Promise<Array<Val>>
-  smismember(set: Bin, li: Array<Bin>): Promise<Array<boolean>>
   xdel(stream: Bin, id: VecBinOrBin): Promise<void>
   zscore(zset: Bin, key: Bin): Promise<number | null>
   fbool(name: Bin, key: Array<Bin>, val: Array<Bin>): Promise<boolean | null>

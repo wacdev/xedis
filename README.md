@@ -192,6 +192,12 @@ ava(
       await C.smismember(set, ['not exist', val, val2, 'not exist 2', 3])
       [false, true, true, false, true]
     )
+    t.is(
+      await C.smismember(set, 'not exist'), false
+    )
+    t.is(
+      await C.smismember(set, val), true
+    )
     await C.del set
     return
 )
