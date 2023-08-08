@@ -6,6 +6,37 @@ local log = function(...)
   redis.log(redis.LOG_NOTICE, unpack(li))
 end
 
+local concat = function(li, push)
+  for i = 1, #push do
+    table.insert(li, push[i])
+  end
+end
+
+-- local strBin = function(str)
+--   local li = {}
+--   for i = 1, #str do
+--     li[i] = string.byte(str, i)
+--   end
+--   return li
+-- end
+
+local intBin = function(n)
+  local t = {}
+  while n > 0 do
+    local r = math.floor(math.fmod(n, 256))
+    table.insert(t, r)
+    n = (n - r) / 256
+  end
+  return t
+end
+
+local splitNum = function(str)
+  local pos = string.find(str, "-") -- 找到"-"的位置
+  local str1 = string.sub(str, 1, pos - 1) -- 截取前半段字符串
+  local str2 = string.sub(str, pos + 1) -- 截取后半段字符串
+  return { tonumber(str1), tonumber(str2) } -- 返回两个数字
+end
+
 local XPENDING = function(stream, group, idle, limit)
   return redis.call("XPENDING", stream, group, "IDLE", idle, "-", "+", limit)
 end
@@ -18,13 +49,28 @@ local XINFO = function(stream, group)
   return redis.call("XINFO", "CONSUMERS", stream, group)
 end
 
+local XACK = function(stream, group, id)
+  return redis.call("XACK", stream, group, id)
+end
+
+local XDEL = function(stream, id)
+  return redis.call("XDEL", stream, id)
+end
+
 local XDELCONSUMER = function(stream, group, consumer)
   return redis.call("XGROUP", "DELCONSUMER", stream, group, consumer)
 end
 
+function xackdel(keys, args)
+  local stream, group = unpack(keys)
+  local id = args[1]
+  XACK(stream, group, id)
+  XDEL(stream, id)
+end
+
 function xconsumerclean(keys, args)
   local stream, group = unpack(keys)
-  local expire = 1000 * tonumber(args[1])
+  local expire = tonumber(args[1])
   for _, v in ipairs(XINFO(stream, group)) do
     local v = v.map
     if v.idle > expire then
@@ -58,21 +104,23 @@ https://redis.io/commands/xpending/
       table.insert(id_li, id)
       id_retry[id] = v[4]
     end
-
-    local r = {}
+    local bin = {}
+    local buf = ""
     for _, v in ipairs(XCLAIM(stream, group, customer, idle, unpack(id_li))) do
       local id, msg = unpack(v)
-
-      for i, v in ipairs(msg) do
-        msg[i] = cmsgpack.unpack(v)
+      table.insert(bin, id_retry[id])
+      id = splitNum(id)
+      concat(bin, id)
+      for _, v in ipairs(msg) do
+        table.insert(bin, #v)
+        -- log(">", strBin(v))
+        buf = buf .. v
       end
-
-      table.insert(msg, 1, id_retry[id])
-      table.insert(msg, 1, id)
-
-      table.insert(r, msg)
     end
-    return cmsgpack.pack(r)
+    bin = cmsgpack.pack(bin)
+    local r = intBin(#bin)
+    table.insert(r, 1, #r)
+    return string.char(unpack(r)) .. bin .. buf
   else
     return
   end
