@@ -44,6 +44,16 @@ function xpendclaim(keys, args)
   if #li > 0 then
     local id_li = {}
     local id_retry = {}
+    --[[
+https://redis.io/commands/xpending/
+对于每条消息，将返回四个属性：
+
+消息的 ID。
+获取消息但仍需确认消息的使用者的名称。我们称它为消息的当前所有者。
+自上次将此消息传递给此使用者以来经过的毫秒数。
+此邮件的传递次数。
+    --]]
+
     for _, v in ipairs(li) do
       local id = v[1]
       table.insert(id_li, id)
