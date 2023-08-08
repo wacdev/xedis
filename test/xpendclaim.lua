@@ -53,12 +53,12 @@ https://redis.io/commands/xpending/
 3 自上次将此消息传递给此使用者以来经过的毫秒数
 3 传递次数
     --]]
-
     for _, v in ipairs(li) do
       local id = v[1]
       table.insert(id_li, id)
       id_retry[id] = v[4]
     end
+
     local r = {}
     for _, v in ipairs(XCLAIM(stream, group, customer, idle, unpack(id_li))) do
       local id, msg = unpack(v)
