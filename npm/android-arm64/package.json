@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis-android-arm64",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "os": [
     "android"
   ],
