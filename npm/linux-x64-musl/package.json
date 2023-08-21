@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis-linux-x64-musl",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "os": [
     "linux"
   ],
