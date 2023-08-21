@@ -40,4 +40,4 @@ await $"git commit -m '#{tag}' || true"
 await $'./sh/clippy.sh'
 await $"git tag #{tag}"
 await $'git push origin '+tag
-
+await $'npm publish --access=public'

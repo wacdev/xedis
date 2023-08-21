@@ -1,6 +1,6 @@
 {
   "name": "@w5/xedis-android-arm-eabi",
-  "version": "0.0.0",
+  "version": "0.0.36",
   "os": [
     "android"
   ],
