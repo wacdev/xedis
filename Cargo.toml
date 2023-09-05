@@ -14,7 +14,7 @@ paste = "1.0.14"
 [dependencies.fred]
 # path = "./lib/fred.rs"
 features = ["replicas", "rustls"]
-version = "6.3.0"
+version = "6.3.1"
 
 [dependencies.napi]
 path = "./lib/napi-rs/crates/napi"
