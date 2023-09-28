@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --loader=@w5/jsext --trace-uncaught --expose-gc --unhandled-rejections=strict --experimental-import-meta-resolve
-var C, KEY, REDIS_DB, REDIS_HOST, REDIS_HOST_PORT, REDIS_PASSWORD, REDIS_PORT, REDIS_USER, glibcVersionRuntime;
+var C, KEY, KV_DB, KV_HOST, KV_HOST_PORT, KV_PASSWORD, KV_PORT, KV_USER, glibcVersionRuntime;
 
 import ava from 'ava';
 
@@ -18,11 +18,11 @@ import {
 
 import os from 'os';
 
-({REDIS_HOST_PORT, REDIS_PASSWORD, REDIS_USER, REDIS_DB} = process.env);
+({KV_HOST_PORT, KV_PASSWORD, KV_USER, KV_DB} = process.env);
 
-[REDIS_HOST, REDIS_PORT] = REDIS_HOST_PORT.split(':');
+[KV_HOST, KV_PORT] = KV_HOST_PORT.split(':');
 
-REDIS_PORT = +REDIS_PORT || 6379;
+KV_PORT = +KV_PORT || 6379;
 
 KEY = 'xedisTest.' + os.arch() + '.' + os.type() + '.node-' + process.version + '.';
 
@@ -35,8 +35,8 @@ if (glibcVersionRuntime) {
 
 ava.before(async() => {
   var server;
-  server = Server.hostPort(REDIS_HOST, REDIS_PORT);
-  C = (await conn(server, REDIS_USER, REDIS_PASSWORD, REDIS_DB));
+  server = Server.hostPort(KV_HOST, KV_PORT);
+  C = (await conn(server, KV_USER, KV_PASSWORD, KV_DB));
 });
 
 ava('zset', async(t) => {
