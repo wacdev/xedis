@@ -25,19 +25,19 @@ pnpm i @w5/xedis
   os
 
 {
-  REDIS_HOST_PORT
-  REDIS_PASSWORD
-  REDIS_USER
-  REDIS_DB
+  KV_HOST_PORT
+  KV_PASSWORD
+  KV_USER
+  KV_DB
 } = process.env
 
 [
-  REDIS_HOST
-  REDIS_PORT
-] = REDIS_HOST_PORT.split(':')
+  KV_HOST
+  KV_PORT
+] = KV_HOST_PORT.split(':')
 
 
-REDIS_PORT = +REDIS_PORT or 6379
+KV_PORT = +KV_PORT or 6379
 
 KEY = 'xedisTest.'+os.arch()+'.'+os.type()+'.node-'+process.version+'.'
 {glibcVersionRuntime} = process.report.getReport().header
@@ -47,10 +47,11 @@ if glibcVersionRuntime
 + C
 
 ava.before =>
-  server = Server.hostPort REDIS_HOST, REDIS_PORT
+  server = Server.hostPort KV_HOST, KV_PORT
 
   C = await conn(
-    server, REDIS_USER, REDIS_PASSWORD, REDIS_DB
+    server, KV_USER, KV_PASSWORD, KV_DB,
+    2 # KV_RESP2
   )
   return
 
