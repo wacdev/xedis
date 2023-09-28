@@ -36,7 +36,7 @@ if (glibcVersionRuntime) {
 ava.before(async() => {
   var server;
   server = Server.hostPort(KV_HOST, KV_PORT);
-  C = (await conn(server, KV_USER, KV_PASSWORD, KV_DB));
+  C = (await conn(server, KV_USER, KV_PASSWORD, KV_DB, 2)); // KV_RESP2
 });
 
 ava('zset', async(t) => {

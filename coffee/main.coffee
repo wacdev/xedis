@@ -33,7 +33,8 @@ ava.before =>
   server = Server.hostPort KV_HOST, KV_PORT
 
   C = await conn(
-    server, KV_USER, KV_PASSWORD, KV_DB
+    server, KV_USER, KV_PASSWORD, KV_DB,
+    2 # KV_RESP2
   )
   return
 
