@@ -8,4 +8,4 @@ DIR=$(realpath $0) && DIR=${DIR%/*/*}
 cd $DIR
 set -ex
 
-bun x ava
+bun x ava --verbose
