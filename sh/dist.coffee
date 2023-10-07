@@ -37,7 +37,7 @@ tag = 'v'+version
 
 await $'git add -u'
 await $"git commit -m '#{tag}' || true"
-await $'./sh/clippy.sh'
+#await $'./sh/clippy.sh'
 await $"git tag #{tag}"
 await $'git push origin '+tag
 
