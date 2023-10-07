@@ -237,11 +237,7 @@ impl Server {
       c: ServerConfig::Clustered {
         hosts: host_port_li
           .into_iter()
-          .map(|(host, port)| fred::types::Server {
-            host: host.into(),
-            port,
-            tls_server_name: None,
-          })
+          .map(|(host, port)| fred::types::Server::new(host.into(), port))
           .collect(),
       },
     }
@@ -251,11 +247,7 @@ impl Server {
   pub fn host_port(host: String, port: u16) -> Self {
     Self {
       c: ServerConfig::Centralized {
-        server: fred::types::Server {
-          host: host.into(),
-          port,
-          tls_server_name: None,
-        },
+        server: fred::types::Server::new(host.into(), port),
       },
     }
   }
@@ -291,7 +283,7 @@ pub async fn conn(
   https://docs.rs/fred/6.2.1/fred/types/enum.ReconnectPolicy.html#method.new_constant
   */
   let policy = ReconnectPolicy::new_constant(6, 1);
-  let client = RedisClient::new(conf, None, Some(policy));
+  let client = RedisClient::new(conf, None, None, Some(policy));
   client.connect();
   client.wait_for_connect().await?;
   Ok(Xedis { c: client })
